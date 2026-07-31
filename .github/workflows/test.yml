@@ -1,0 +1,58 @@
+name: Test
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - '8.2'
+          - '8.3'
+          - '8.4'
+          - '8.5'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: gd
+          tools: composer
+
+      - name: Install development dependencies
+        uses: myparcelnl/actions/composer-install@v5
+        env:
+          # OpenCart 4.1 itself requires GD. The shared Composer image does not
+          # include it, while the host runtime above deliberately does.
+          COMPOSER_IGNORE_PLATFORM_REQ: ext-gd
+        with:
+          php-version: ${{ matrix.php-version }}
+          composer-args: --working-dir=plugin/extension/myparcel --no-interaction --prefer-dist
+
+      - name: Validate Composer metadata
+        run: composer validate --working-dir=plugin/extension/myparcel --strict
+
+      - name: Run unit and PHP syntax checks
+        run: |
+          plugin/extension/myparcel/vendor/bin/phpunit --configuration plugin/extension/myparcel/phpunit.xml.dist
+          find plugin/extension/myparcel -name '*.php' -not -path '*/vendor/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Verify JavaScript syntax
+        if: matrix.php-version == '8.2'
+        run: |
+          find plugin/extension/myparcel -name '*.js' -not -path '*/vendor/*' -print0 | xargs -0 -n1 node --check
+
+      - name: Verify OpenCart 4.1 OCMOD contract
+        if: matrix.php-version == '8.2'
+        run: |
+          git clone --depth 1 --branch 4.1.0.3 https://github.com/opencart/opencart.git /tmp/opencart-4.1.0.3
+          bin/check-oc41-compatibility /tmp/opencart-4.1.0.3

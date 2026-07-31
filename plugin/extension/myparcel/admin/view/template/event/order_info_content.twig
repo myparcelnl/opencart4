@@ -1,0 +1,54 @@
+{# Order-detail extras: the last export error and the card listing every MyParcel
+   shipment. Autoescape is OFF: |e everything except shipment.actions, which is a
+   pre-rendered order_actions partial and must stay raw. #}
+{% if error %}
+<div class="alert alert-danger alert-dismissible fade show myparcel-export-error" role="alert">{{ error|e }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ text.close|e }}"></button></div>
+{% endif %}
+{% if shipments %}
+<div class="card mb-3">
+  <div class="card-header"><i class="fa-solid fa-truck"></i> {{ text.heading|e }} <span class="badge bg-secondary">{{ shipments|length }}</span></div>
+  <div class="card-body">
+    <p class="text-muted">{{ text.intro|e }}</p>
+    <div class="table-responsive">
+      <table class="table table-bordered mb-0">
+        <thead>
+          <tr>
+            <th>{{ text.column_shipment|e }}</th>
+            <th>{{ text.column_barcode|e }}</th>
+            <th>{{ text.column_tracking|e }}</th>
+            <th>{{ text.column_created|e }}</th>
+            <th class="text-end">{{ text.column_actions|e }}</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for shipment in shipments %}
+          <tr>
+            <td>{{ shipment.id|e }}</td>
+            <td>
+              {% if shipment.barcode and shipment.track_url %}
+              <a href="{{ shipment.track_url|e }}" target="_blank" rel="noopener noreferrer">{{ shipment.barcode|e }}</a>
+              {% elseif shipment.barcode %}
+              {{ shipment.barcode|e }}
+              {% else %}
+              &mdash;
+              {% endif %}
+            </td>
+            <td>
+              {% if shipment.track_url %}
+              <span class="badge bg-success">{{ text.tracking_ready|e }}</span>
+              {% elseif shipment.barcode %}
+              <span class="badge bg-warning text-dark">{{ text.tracking_processing|e }}</span>
+              {% else %}
+              <span class="badge bg-light text-dark border">{{ text.tracking_unavailable|e }}</span>
+              {% endif %}
+            </td>
+            <td>{{ shipment.created_at|e }}</td>
+            <td class="text-end">{{ shipment.actions }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}

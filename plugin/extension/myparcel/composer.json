@@ -1,0 +1,32 @@
+{
+    "name": "myparcelnl/opencart4",
+    "description": "MyParcel plugin for OpenCart 4",
+    "type": "opencart-plugin",
+    "license": "MIT",
+    "require": {
+        "guzzlehttp/guzzle": "^7.10",
+        "php": "^8.2",
+        "myparcelnl/sdk": "^11.0@beta"
+    },
+    "autoload": {
+        "psr-4": {
+            "MyParcelNL\\OpenCart\\Core\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MyParcelNL\\OpenCart\\Core\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "scripts": {
+        "package": "../../../bin/build-release-zip"
+    },
+    "minimum-stability": "beta",
+    "prefer-stable": true,
+    "require-dev": {
+        "phpunit/phpunit": "^9"
+    }
+}

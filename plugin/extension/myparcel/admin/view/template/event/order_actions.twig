@@ -1,0 +1,20 @@
+{# Inline MyParcel actions for one order: action buttons, optional barcode link,
+   shipment-count badge and carrier badge. OpenCart renders Twig with autoescape
+   OFF, so every dynamic value must go through |e explicitly. Buttons and the
+   count badge arrive pre-rendered (order_action_button.twig /
+   order_shipment_count_badge.twig own their presentation): OpenCart's
+   per-render Twig loader cannot resolve include route names. #}
+{% for button in buttons %}
+{{ button }}
+{% endfor %}
+{% if tracktrace %}
+<a href="{{ tracktrace.url|e }}" target="_blank" rel="noopener noreferrer" class="btn btn-light" data-bs-toggle="tooltip" title="{{ tracktrace.barcode|e }}"><i class="fa-solid fa-barcode"></i></a>
+{% endif %}
+{% if count_badge %}
+{{ count_badge }}
+{% endif %}
+{% if carrier and carrier.logo %}
+<img src="{{ carrier.logo|e }}" alt="{{ carrier.name|e }}" title="{{ carrier.name|e }}" class="align-middle" style="height: 22px; width: auto;"/>
+{% elseif carrier %}
+<span class="badge bg-light text-dark border align-middle" title="{{ carrier.name|e }}">{{ carrier.name|e }}</span>
+{% endif %}

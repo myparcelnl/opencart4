@@ -1,0 +1,115 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release_version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate release version
+        id: release_version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! version="$(jq -er '.version | strings | select(length > 0)' plugin/extension/myparcel/install.json)"; then
+            echo "::error::install.json does not contain a valid version string."
+            exit 1
+          fi
+
+          semver_pattern='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
+
+          if [[ ! "$version" =~ $semver_pattern ]]; then
+            echo "::error::install.json contains an invalid semantic version: $version"
+            exit 1
+          fi
+
+          if [[ "$GITHUB_REF_NAME" != "v$version" ]]; then
+            echo "::error::Release tag $GITHUB_REF_NAME must match install.json version v$version."
+            exit 1
+          fi
+
+          git fetch --no-tags origin main:refs/remotes/origin/main
+
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "::error::Release tags must point to a commit on main."
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: validate
+    uses: ./.github/workflows/test.yml
+
+  build:
+    needs:
+      - validate
+      - test
+    uses: ./.github/workflows/build.yml
+    with:
+      artifact-name: myparcel-opencart4-${{ needs.validate.outputs.version }}
+      retention-days: 1
+
+  publish:
+    needs:
+      - validate
+      - build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: myparcel-opencart4-${{ needs.validate.outputs.version }}
+          path: release-artifact
+
+      - name: Publish GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          source_file="release-artifact/myparcel.ocmod.zip"
+          release_file="release-artifact/myparcel-opencart4-${RELEASE_VERSION}.ocmod.zip"
+
+          if [[ ! -f "$source_file" ]]; then
+            echo "::error::The release package was not found at $source_file."
+            exit 1
+          fi
+
+          mv "$source_file" "$release_file"
+
+          release_args=(
+            release create "$RELEASE_TAG"
+            "$release_file#MyParcel OpenCart ${RELEASE_VERSION}"
+            --verify-tag
+            --generate-notes
+            --title "MyParcel OpenCart ${RELEASE_VERSION}"
+          )
+
+          if [[ "$RELEASE_VERSION" == *-* ]]; then
+            release_args+=(--prerelease)
+          fi
+
+          gh "${release_args[@]}"

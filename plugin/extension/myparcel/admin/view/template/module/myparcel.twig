@@ -1,0 +1,425 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end">
+        <button type="submit" form="form-module" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-save"></i></button>
+        <a href="{{ shipping_link }}" data-bs-toggle="tooltip" title="{{ help_shipping_link }}" class="btn btn-light"><i class="fa-solid fa-truck"></i> {{ button_shipping_settings }}</a>
+        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ol class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  <div class="container-fluid">
+    {% if ocmod_message %}
+    <div class="alert alert-warning">
+      <h5 class="alert-heading"><i class="fa-solid fa-triangle-exclamation"></i> {{ text_ocmod_heading }}</h5>
+      <p>{{ ocmod_message }}</p>
+      <a href="{{ modifications_link }}" class="btn btn-warning btn-sm">{{ button_open_modifications }}</a>
+    </div>
+    {% endif %}
+    <div class="card">
+      <div class="card-header"><i class="fa-solid fa-pencil"></i> {{ text_edit }}</div>
+      <div class="card-body">
+        <form id="form-module" action="{{ save }}" method="post" data-oc-toggle="ajax">
+          <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+              <a href="#tab-general" data-bs-toggle="tab" class="nav-link active">{{ tab_general }}</a>
+            </li>
+            <li class="nav-item">
+              <a href="#tab-defaults" data-bs-toggle="tab" class="nav-link">{{ tab_shipment_defaults }}</a>
+            </li>
+            <li class="nav-item">
+              <a href="#tab-carriers" data-bs-toggle="tab" class="nav-link">{{ tab_carriers }}</a>
+            </li>
+            <li class="nav-item">
+              <a href="#tab-checkout" data-bs-toggle="tab" class="nav-link">{{ tab_checkout }}</a>
+            </li>
+            <li class="nav-item">
+              <a href="#tab-customs" data-bs-toggle="tab" class="nav-link">{{ tab_customs }}</a>
+            </li>
+          </ul>
+
+          <div class="tab-content pt-3">
+            <div id="tab-general" class="tab-pane active">
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_status }}</label>
+                <div class="col-sm-10">
+                  <div class="form-check form-switch form-switch-lg">
+                    <input type="hidden" name="module_myparcel_status" value="0"/>
+                    <input type="checkbox" name="module_myparcel_status" value="1" id="input-status" class="form-check-input"{% if module_myparcel_status %} checked{% endif %}/>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label for="input-api-key" class="col-sm-2 col-form-label">{{ entry_api_key }}</label>
+                <div class="col-sm-10">
+                  <div class="input-group">
+                    <input type="password" name="module_myparcel_api_key" value="{{ module_myparcel_api_key }}" placeholder="{{ entry_api_key }}" id="input-api-key" class="form-control" autocomplete="off"/>
+                    <button type="button" id="button-toggle-api-key" class="btn btn-light" title="{{ button_show }}"><i class="fa-solid fa-eye"></i></button>
+                    <button type="button" id="button-test-api-key" class="btn btn-secondary">{{ button_test }}</button>
+                  </div>
+                  <div id="api-key-feedback" class="mt-2"></div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label for="input-environment" class="col-sm-2 col-form-label">{{ entry_environment }}</label>
+                <div class="col-sm-10">
+                  <select name="module_myparcel_environment" id="input-environment" class="form-select" style="max-width: 320px;">
+                    <option value="production"{% if module_myparcel_environment == 'production' %} selected{% endif %}>{{ text_environment_production }}</option>
+                    <option value="acceptance"{% if module_myparcel_environment == 'acceptance' %} selected{% endif %}>{{ text_environment_acceptance }}</option>
+                  </select>
+                  <div class="form-text">{{ help_environment }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="tab-defaults" class="tab-pane">
+              <div class="row mb-3">
+                <label for="input-package-type" class="col-sm-2 col-form-label">{{ entry_default_package_type }}</label>
+                <div class="col-sm-10">
+                  <select name="module_myparcel_default_package_type" id="input-package-type" class="form-select" style="max-width: 320px;">
+                    {% for slug, label in package_type_options %}
+                      <option value="{{ slug }}"{% if module_myparcel_default_package_type == slug %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                  <div class="form-text">{{ help_default_package_type }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label for="input-label-format" class="col-sm-2 col-form-label">{{ entry_label_format }}</label>
+                <div class="col-sm-10">
+                  <select name="module_myparcel_label_format" id="input-label-format" class="form-select" style="max-width: 320px;">
+                    {% for format in label_format_options %}
+                      <option value="{{ format }}"{% if module_myparcel_label_format == format %} selected{% endif %}>{{ format }}</option>
+                    {% endfor %}
+                  </select>
+                  <div class="form-text">{{ help_label_format }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label for="input-label-position" class="col-sm-2 col-form-label">{{ entry_label_position }}</label>
+                <div class="col-sm-10">
+                  <select name="module_myparcel_label_position" id="input-label-position" class="form-select" style="max-width: 320px;">
+                    {% for position in label_position_options %}
+                      <option value="{{ position }}"{% if module_myparcel_label_position == position %} selected{% endif %}>{{ position }}</option>
+                    {% endfor %}
+                  </select>
+                  <div class="form-text">{{ help_label_position }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_fallback_dimensions }}</label>
+                <div class="col-sm-10">
+                  <div class="input-group" style="max-width: 320px;">
+                    <input type="number" name="module_myparcel_default_length" value="{{ module_myparcel_default_length }}" min="0" placeholder="{{ entry_length }}" aria-label="{{ entry_length }}" class="form-control"/>
+                    <input type="number" name="module_myparcel_default_width" value="{{ module_myparcel_default_width }}" min="0" placeholder="{{ entry_width }}" aria-label="{{ entry_width }}" class="form-control"/>
+                    <input type="number" name="module_myparcel_default_height" value="{{ module_myparcel_default_height }}" min="0" placeholder="{{ entry_height }}" aria-label="{{ entry_height }}" class="form-control"/>
+                    <span class="input-group-text">cm</span>
+                  </div>
+                  <div class="form-text">{{ help_fallback_dimensions }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label for="input-default-weight" class="col-sm-2 col-form-label">{{ entry_fallback_weight }}</label>
+                <div class="col-sm-10">
+                  <div class="input-group" style="max-width: 320px;">
+                    <input type="number" name="module_myparcel_default_weight" value="{{ module_myparcel_default_weight }}" min="0" id="input-default-weight" class="form-control"/>
+                    <span class="input-group-text">g</span>
+                  </div>
+                  <div class="form-text">{{ help_fallback_weight }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="tab-carriers" class="tab-pane">
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_capabilities }}</label>
+                <div class="col-sm-10">
+                  <button type="button" id="button-import-capabilities" class="btn btn-secondary">{{ button_import }}</button>
+                  <div class="form-text">{{ text_save_first }}</div>
+                  {% if capabilities_summary %}
+                    <div class="mt-2 text-muted small">{{ capabilities_summary.carrier_count }} {{ text_carriers }} &middot; {{ text_last_imported }} {{ capabilities_summary.fetched_at|date('Y-m-d H:i') }} ({{ capabilities_summary.environment }})</div>
+                  {% else %}
+                    <div class="mt-2 text-muted small">{{ text_capabilities_none }}</div>
+                  {% endif %}
+                  <div id="capabilities-feedback" class="mt-2"></div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_carriers }}</label>
+                <div class="col-sm-10">
+                  {% if carriers %}
+                    <div class="table-responsive">
+                      <table class="table table-bordered align-middle mb-2">
+                        <thead>
+                          <tr>
+                            <th scope="col">{{ column_carrier }}</th>
+                            <th scope="col">{{ column_services }}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% for carrier in carriers %}
+                            <tr>
+                              <td class="text-nowrap">
+                                <input type="hidden" name="module_myparcel_carriers[{{ carrier.slug|e }}][enabled]" value="0"/>
+                                <div class="form-check form-switch">
+                                  <input type="checkbox" name="module_myparcel_carriers[{{ carrier.slug|e }}][enabled]" value="1" id="input-carrier-{{ carrier.slug|e }}" class="form-check-input"{% if carrier.enabled %} checked{% endif %}/>
+                                  <label for="input-carrier-{{ carrier.slug|e }}" class="form-check-label d-inline-flex align-items-center gap-2">
+                                    {% if carrier.logo %}
+                                      <img src="{{ carrier.logo|e }}" alt="" style="height: 24px; max-width: 64px; width: auto;"/>
+                                    {% endif %}
+                                    <span>{{ carrier.label|e }}</span>
+                                  </label>
+                                </div>
+                              </td>
+                              <td>
+                                {% for service in carrier.services %}
+                                  <label class="form-check form-check-inline mb-1">
+                                    <input type="checkbox" name="module_myparcel_carriers[{{ carrier.slug|e }}][services][]" value="{{ service.key|e }}" class="form-check-input"{% if service.enabled %} checked{% endif %}/>
+                                    <span class="form-check-label">{{ service.label|e }}</span>
+                                  </label>
+                                {% endfor %}
+                              </td>
+                            </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="form-text">{{ help_carriers }}</div>
+                  {% else %}
+                    <div class="text-muted">{{ text_carriers_empty }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div id="tab-checkout" class="tab-pane">
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_do_enabled }}</label>
+                <div class="col-sm-10">
+                  <div class="form-check form-switch form-switch-lg">
+                    <input type="hidden" name="module_myparcel_checkout[delivery_options_enabled]" value="0"/>
+                    <input type="checkbox" name="module_myparcel_checkout[delivery_options_enabled]" value="1" class="form-check-input"{% if checkout.deliveryOptionsEnabled %} checked{% endif %}/>
+                  </div>
+                  <div class="form-text">{{ help_do_enabled }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_show_delivery_date }}</label>
+                <div class="col-sm-10">
+                  <div class="form-check form-switch">
+                    <input type="hidden" name="module_myparcel_checkout[show_delivery_date]" value="0"/>
+                    <input type="checkbox" name="module_myparcel_checkout[show_delivery_date]" value="1" class="form-check-input"{% if checkout.showDeliveryDate %} checked{% endif %}/>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label for="input-delivery-days-window" class="col-sm-2 col-form-label">{{ entry_delivery_days_window }}</label>
+                <div class="col-sm-10">
+                  <input type="number" name="module_myparcel_checkout[delivery_days_window]" value="{{ checkout.deliveryDaysWindow }}" min="0" id="input-delivery-days-window" class="form-control" style="max-width: 320px;"/>
+                  <div class="form-text">{{ help_delivery_days_window }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label for="input-drop-off-delay" class="col-sm-2 col-form-label">{{ entry_drop_off_delay }}</label>
+                <div class="col-sm-10">
+                  <input type="number" name="module_myparcel_checkout[drop_off_delay]" value="{{ checkout.dropOffDelay }}" min="0" id="input-drop-off-delay" class="form-control" style="max-width: 320px;"/>
+                  <div class="form-text">{{ help_drop_off_delay }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label for="input-pickup-view" class="col-sm-2 col-form-label">{{ entry_pickup_default_view }}</label>
+                <div class="col-sm-10">
+                  <select name="module_myparcel_checkout[pickup_locations_default_view]" id="input-pickup-view" class="form-select" style="max-width: 320px;">
+                    <option value="list"{% if checkout.pickupLocationsDefaultView == 'list' %} selected{% endif %}>{{ text_view_list }}</option>
+                    <option value="map"{% if checkout.pickupLocationsDefaultView == 'map' %} selected{% endif %}>{{ text_view_map }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_allow_pickup_view_selection }}</label>
+                <div class="col-sm-10">
+                  <div class="form-check form-switch">
+                    <input type="hidden" name="module_myparcel_checkout[allow_pickup_locations_view_selection]" value="0"/>
+                    <input type="checkbox" name="module_myparcel_checkout[allow_pickup_locations_view_selection]" value="1" class="form-check-input"{% if checkout.allowPickupLocationsViewSelection %} checked{% endif %}/>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_exclude_parcel_lockers }}</label>
+                <div class="col-sm-10">
+                  <div class="form-check form-switch">
+                    <input type="hidden" name="module_myparcel_checkout[exclude_parcel_lockers]" value="0"/>
+                    <input type="checkbox" name="module_myparcel_checkout[exclude_parcel_lockers]" value="1" class="form-check-input"{% if checkout.excludeParcelLockers %} checked{% endif %}/>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_compact_view }}</label>
+                <div class="col-sm-10">
+                  <div class="form-check form-switch">
+                    <input type="hidden" name="module_myparcel_checkout[compact_view]" value="0"/>
+                    <input type="checkbox" name="module_myparcel_checkout[compact_view]" value="1" class="form-check-input"{% if checkout.compactView %} checked{% endif %}/>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_pop_up_map }}</label>
+                <div class="col-sm-10">
+                  <div class="form-check form-switch">
+                    <input type="hidden" name="module_myparcel_checkout[pop_up_map]" value="0"/>
+                    <input type="checkbox" name="module_myparcel_checkout[pop_up_map]" value="1" class="form-check-input"{% if checkout.popUpMap %} checked{% endif %}/>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="tab-customs" class="tab-pane">
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">{{ entry_product_fields }}</label>
+                <div class="col-sm-10">
+                  <div class="form-check form-switch">
+                    <input type="hidden" name="module_myparcel_customs_product_fields" value="0"/>
+                    <input type="checkbox" name="module_myparcel_customs_product_fields" value="1" id="input-product-fields" class="form-check-input"{% if module_myparcel_customs_product_fields %} checked{% endif %}/>
+                  </div>
+                  <div class="form-text">{{ help_product_fields }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label for="input-customs-country" class="col-sm-2 col-form-label">{{ entry_customs_country }}</label>
+                <div class="col-sm-10">
+                  <select name="module_myparcel_customs_default_country" id="input-customs-country" class="form-select" style="max-width: 320px;">
+                    <option value="">{{ text_none }}</option>
+                    {% for code, name in customs_country_options %}
+                      <option value="{{ code }}"{% if module_myparcel_customs_default_country == code %} selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                  </select>
+                  <div class="form-text">{{ help_customs_country }}</div>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label for="input-customs-code" class="col-sm-2 col-form-label">{{ entry_customs_code }}</label>
+                <div class="col-sm-10">
+                  <input type="text" name="module_myparcel_customs_default_hs_code" value="{{ module_myparcel_customs_default_hs_code }}" id="input-customs-code" class="form-control" style="max-width: 320px;"/>
+                  <div class="form-text">{{ help_customs_code }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+var myparcelText = {{ {
+  'testing': text_testing,
+  'valid': text_api_key_valid,
+  'invalid': text_api_key_invalid,
+  'transport': text_api_key_transport,
+  'account': text_account,
+  'shop': text_shop,
+  'importing': text_importing,
+  'carriers': text_carriers,
+  'capabilitiesError': text_capabilities_error
+}|json_encode|raw }};
+
+document.getElementById('button-toggle-api-key').addEventListener('click', function () {
+  var input = document.getElementById('input-api-key');
+  input.type = input.type === 'password' ? 'text' : 'password';
+});
+
+document.getElementById('button-test-api-key').addEventListener('click', function () {
+  var button = this;
+  var feedback = document.getElementById('api-key-feedback');
+
+  button.disabled = true;
+  feedback.innerHTML = '<span class="text-muted"><i class="fa-solid fa-circle-notch fa-spin"></i> ' + myparcelText.testing + '</span>';
+
+  $.ajax({
+    url: 'index.php?route=extension/myparcel/module/myparcel.apiKeyCheck&user_token={{ user_token }}',
+    type: 'post',
+    dataType: 'json',
+    data: {
+      api_key: document.getElementById('input-api-key').value,
+      environment: document.getElementById('input-environment').value
+    },
+    complete: function () {
+      button.disabled = false;
+    },
+    success: function (json) {
+      if (json.valid) {
+        var info = '';
+        if (json.account_id) {
+          info = ' (' + myparcelText.account + ' ' + json.account_id;
+          info += json.shop_id ? ', ' + myparcelText.shop + ' ' + json.shop_id + ')' : ')';
+        }
+        feedback.innerHTML = '<span class="text-success"><i class="fa-solid fa-circle-check"></i> ' + myparcelText.valid + info + '</span>';
+      } else if (json.reason === 'transport_error') {
+        feedback.innerHTML = '<span class="text-warning"><i class="fa-solid fa-triangle-exclamation"></i> ' + (json.message || myparcelText.transport) + '</span>';
+      } else {
+        feedback.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> ' + (json.message || myparcelText.invalid) + '</span>';
+      }
+    },
+    error: function () {
+      feedback.innerHTML = '<span class="text-warning"><i class="fa-solid fa-triangle-exclamation"></i> ' + myparcelText.transport + '</span>';
+    }
+  });
+});
+
+document.getElementById('button-import-capabilities').addEventListener('click', function () {
+  var button = this;
+  var feedback = document.getElementById('capabilities-feedback');
+
+  button.disabled = true;
+  feedback.innerHTML = '<span class="text-muted"><i class="fa-solid fa-circle-notch fa-spin"></i> ' + myparcelText.importing + '</span>';
+
+  $.ajax({
+    url: 'index.php?route=extension/myparcel/module/myparcel.importCapabilities&user_token={{ user_token }}',
+    type: 'post',
+    dataType: 'json',
+    complete: function () {
+      button.disabled = false;
+    },
+    success: function (json) {
+      if (json.valid) {
+        var count = (typeof json.carrier_count !== 'undefined') ? ' (' + json.carrier_count + ' ' + myparcelText.carriers + ')' : '';
+        feedback.innerHTML = '<span class="text-success"><i class="fa-solid fa-circle-check"></i> ' + json.message + count + '</span>';
+        // Carrier rows are server-rendered, so refresh after the success message is visible.
+        window.setTimeout(function () {
+          window.location.reload();
+        }, 1200);
+      } else {
+        feedback.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> ' + (json.message || myparcelText.capabilitiesError) + '</span>';
+      }
+    },
+    error: function () {
+      feedback.innerHTML = '<span class="text-warning"><i class="fa-solid fa-triangle-exclamation"></i> ' + myparcelText.capabilitiesError + '</span>';
+    }
+  });
+});
+</script>
+{{ footer }}

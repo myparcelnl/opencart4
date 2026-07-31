@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Build a clean, customer-installable release zip of the MyParcel OpenCart 4 plugin.
+#
+# - Includes vendor (PRODUCTION only, via `composer install --no-dev`) so the target
+#   shop needs no Composer; excludes tests + dev tooling + macOS/IDE junk.
+# - Prefixes third-party namespaces (including Guzzle) with PHP-Scoper so the
+#   bundled SDK can coexist with OpenCart and other extensions' dependencies.
+# - Runs in a TEMP staging copy, so your working tree and dev vendor (with phpunit)
+#   are never touched.
+# - Output: dist/myparcel.ocmod.zip — upload via OpenCart admin -> Extensions -> Installer.
+#
+# Usage (from the repo root):
+#   bin/build-release-zip
+# or, from the plugin dir:
+#   composer run package
+#
+# Overridable:
+#   OUTPUT=/path/to/myparcel.ocmod.zip   PLUGIN_DIR=/path/to/plugin/extension/myparcel
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+
+PLUGIN_DIR="${PLUGIN_DIR:-${REPO_ROOT}/plugin/extension/myparcel}"
+OUTPUT="${OUTPUT:-${REPO_ROOT}/dist/myparcel.ocmod.zip}"
+
+command -v composer >/dev/null 2>&1 || { echo "composer not found on PATH" >&2; exit 1; }
+command -v rsync >/dev/null 2>&1 || { echo "rsync not found on PATH" >&2; exit 1; }
+command -v curl >/dev/null 2>&1 || { echo "curl not found on PATH" >&2; exit 1; }
+
+if ! php -r 'exit(version_compare(PHP_VERSION, "8.2.0", ">=") ? 0 : 1);'; then
+  echo "The release build requires PHP 8.2+; the plugin itself has the same minimum." >&2
+  exit 1
+fi
+
+if [ ! -f "${PLUGIN_DIR}/install.json" ]; then
+  echo "install.json not found in ${PLUGIN_DIR}" >&2
+  echo "Override with PLUGIN_DIR=/path/to/plugin if your repo lives elsewhere." >&2
+  exit 1
+fi
+
+STAGING="$(mktemp -d)"
+trap 'rm -rf "${STAGING}"' EXIT
+STAGE="${STAGING}/myparcel"
+mkdir -p "${STAGE}"
+
+# Copy source only — vendor is rebuilt clean (prod-only) below.
+rsync -a \
+  --exclude 'vendor/' \
+  --exclude 'tests/' \
+  --exclude 'node_modules/' \
+  --exclude '.git/' \
+  --exclude '.idea/' \
+  --exclude '.DS_Store' \
+  --exclude '._*' \
+  --exclude '__MACOSX/' \
+  --exclude 'phpunit.xml.dist' \
+  --exclude '.phpunit.result.cache' \
+  --exclude '*.ocmod.zip' \
+  "${PLUGIN_DIR}/" "${STAGE}/"
+
+# Production dependencies + optimized classmap = smallest vendor for the OC4 installer.
+( cd "${STAGE}" && composer install --no-dev --classmap-authoritative --optimize-autoloader --no-interaction --quiet )
+
+# Use an exact, checksum-verified build tool so identical sources cannot be
+# scoped differently by a floating PHP-Scoper release.
+SCOPER_VERSION="0.18.19"
+SCOPER_SHA256="170fb84bd3390defb30f99f7dc39c9a89d10c29973accc26f31c00abc5b25933"
+SCOPER_PHAR="${STAGING}/php-scoper.phar"
+SCOPED_SOURCE="${STAGING}/scoped-source"
+SCOPED_VENDOR="${STAGING}/scoped-vendor"
+
+curl -fsSL --retry 3 \
+  "https://github.com/humbug/php-scoper/releases/download/${SCOPER_VERSION}/php-scoper.phar" \
+  -o "${SCOPER_PHAR}"
+
+ACTUAL_SCOPER_SHA256="$(php -r 'echo hash_file("sha256", $argv[1]);' "${SCOPER_PHAR}")"
+
+if [ "${ACTUAL_SCOPER_SHA256}" != "${SCOPER_SHA256}" ]; then
+  echo "PHP-Scoper checksum mismatch: expected ${SCOPER_SHA256}, got ${ACTUAL_SCOPER_SHA256}" >&2
+  exit 1
+fi
+
+mkdir -p "${SCOPED_SOURCE}" "${SCOPED_VENDOR}"
+
+(
+  cd "${STAGE}"
+  php -d memory_limit=-1 "${SCOPER_PHAR}" add-prefix \
+    --config=scoper.vendor.inc.php \
+    --output-dir="${SCOPED_VENDOR}" \
+    --force --no-ansi --no-interaction
+  php -d memory_limit=-1 "${SCOPER_PHAR}" add-prefix \
+    --config=scoper.inc.php \
+    --output-dir="${SCOPED_SOURCE}" \
+    --force --no-ansi --no-interaction
+)
+
+# PHP-Scoper's vendor finder emits paths relative to vendor/. Replace the original
+# Composer tree instead of overlaying it, otherwise excluded docs/tests survive.
+# Source paths stay relative to the plugin root.
+rm -rf "${STAGE}/vendor"
+mkdir -p "${STAGE}/vendor"
+rsync -a "${SCOPED_VENDOR}/" "${STAGE}/vendor/"
+rsync -a "${SCOPED_SOURCE}/" "${STAGE}/"
+rm -f "${STAGE}/scoper.inc.php" "${STAGE}/scoper.vendor.inc.php"
+( cd "${STAGE}" && composer dump-autoload --no-dev --classmap-authoritative --optimize --no-interaction --quiet )
+rm -f "${STAGE}/composer.lock"
+
+# Fail the build if a dependency reintroduces directories that are never needed
+# at runtime. Keeping this assertion here prevents future package updates from
+# silently bloating the customer release again.
+FORBIDDEN_VENDOR_DIR="$(find "${STAGE}/vendor" -type d \( \
+  -name '.github' -o \
+  -name '.idea' -o \
+  -name '.openapi-generator' -o \
+  -name '.run' -o \
+  -name '.yarn' -o \
+  -name 'doc' -o \
+  -name 'docs' -o \
+  -name 'example' -o \
+  -name 'examples' -o \
+  -name 'openapi' -o \
+  -name 'test' -o \
+  -name 'tests' -o \
+  -name 'Tests' -o \
+  -name 'vendor-bin' \
+\) -print -quit)"
+
+if [ -n "${FORBIDDEN_VENDOR_DIR}" ]; then
+  echo "Release contains a non-runtime vendor directory: ${FORBIDDEN_VENDOR_DIR}" >&2
+  exit 1
+fi
+
+# Prove the release contains the isolated dependency and still exposes the SDK.
+php -r '
+eval("namespace GuzzleHttp; class Client {}");
+require $argv[1] . "/bootstrap.php";
+if (!class_exists("_MyParcelNL\\GuzzleHttp\\Client")) {
+    fwrite(STDERR, "Scoped Guzzle client is missing.\n");
+    exit(1);
+}
+if (!class_exists("MyParcelNL\\Sdk\\Services\\Shipment\\ShipmentCreateService")) {
+    fwrite(STDERR, "MyParcel SDK autoload smoke test failed.\n");
+    exit(1);
+}
+new MyParcelNL\Sdk\Services\Shipment\ShipmentCreateService("build-smoke-test");
+
+$serializer = MyParcelNL\Sdk\Client\Generated\IamApi\ObjectSerializer::class;
+$model = MyParcelNL\Sdk\Client\Generated\IamApi\Model\FixedPrincipal::class;
+$principal = $serializer::deserialize((object) ["account_id" => 123, "type" => "SHOP"], $model, []);
+
+if (!$principal instanceof $model || !is_object($serializer::sanitizeForSerialization($principal))) {
+    fwrite(STDERR, "MyParcel SDK serialization smoke test failed.\n");
+    exit(1);
+}
+' "${STAGE}"
+
+mkdir -p "$(dirname "${OUTPUT}")"
+rm -f "${OUTPUT}"
+
+# install.json must sit at the zip root (OpenCart Extension Installer convention).
+( cd "${STAGE}" && zip -rqX "${OUTPUT}" . )
+
+echo "Created: ${OUTPUT}"
+echo "Size:    $(du -h "${OUTPUT}" | cut -f1)"
+echo "Files:   $(unzip -l "${OUTPUT}" | tail -1 | awk '{print $2}')"

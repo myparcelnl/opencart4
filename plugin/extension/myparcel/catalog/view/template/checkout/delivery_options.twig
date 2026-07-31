@@ -1,0 +1,9 @@
+<div id="myparcel-delivery-options-container" class="myparcel-delivery-options-container mt-3" hidden>
+  <div id="myparcel-delivery-options"></div>
+  <input type="hidden" name="myparcel_delivery_options" id="input-myparcel-delivery-options"/>
+</div>
+<script type="text/javascript">
+window.MyParcelConfig = {{ myparcel_config|json_encode|raw }};
+window.MyParcelOpenCartConfig = {{ myparcel_oc4_config|json_encode|raw }};
+</script>
+<script type="text/javascript" src="{{ myparcel_oc4_config.adapterUrl }}"></script>

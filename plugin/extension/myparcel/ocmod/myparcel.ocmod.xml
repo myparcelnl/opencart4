@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>MyParcel admin panels</name>
+    <version>0.2.0</version>
+    <author>MyParcel</author>
+    <link>https://www.myparcel.nl</link>
+    <description>Adds the slots that render the MyParcel order actions, shipments card and product customs fields. The view data comes from the MyParcel view/before event handlers. Every operation aborts as a whole when its anchor no longer matches (error="abort"), and each slot carries a myparcel-slot marker so the module's settings page can verify the modification has been applied.</description>
+
+    <file path="admin/view/template/sale/order.twig">
+        <operation error="abort">
+            <ignoreif><![CDATA[myparcel-slot:order-assets]]></ignoreif>
+            <search><![CDATA[{{ footer }}]]></search>
+            <add position="before"><![CDATA[{# myparcel-slot:order-assets@0.2.0 #}{{ myparcel_order_assets }}]]></add>
+        </operation>
+    </file>
+
+    <file path="admin/view/template/sale/order_list.twig">
+        <operation error="abort">
+            <ignoreif><![CDATA[myparcel-slot:order-list-actions]]></ignoreif>
+            <search><![CDATA[<a href="{{ order.view }}"]]></search>
+            <add position="replace"><![CDATA[{# myparcel-slot:order-list-actions@0.2.0 #}{% if order.myparcel_actions %}{{ order.myparcel_actions }}{% endif %}<a href="{{ order.view }}"]]></add>
+        </operation>
+    </file>
+
+    <file path="admin/view/template/sale/order_info.twig">
+        <operation error="abort">
+            <ignoreif><![CDATA[myparcel-slot:order-info-toolbar]]></ignoreif>
+            <search><![CDATA[<a href="{{ back }}"]]></search>
+            <add position="replace"><![CDATA[{# myparcel-slot:order-info-toolbar@0.2.0 #}{% if myparcel_order_toolbar %}{{ myparcel_order_toolbar }} {% endif %}<a href="{{ back }}"]]></add>
+        </operation>
+        <operation error="abort">
+            <ignoreif><![CDATA[myparcel-slot:order-info-content]]></ignoreif>
+            <search index="0"><![CDATA[<div class="card mb-3">]]></search>
+            <add position="before"><![CDATA[    {# myparcel-slot:order-info-content@0.2.0 #}{{ myparcel_order_content }}]]></add>
+        </operation>
+        <operation error="abort">
+            <ignoreif><![CDATA[myparcel-slot:order-assets]]></ignoreif>
+            <search><![CDATA[{{ footer }}]]></search>
+            <add position="before"><![CDATA[{# myparcel-slot:order-assets@0.2.0 #}{{ myparcel_order_assets }}]]></add>
+        </operation>
+    </file>
+
+    <file path="admin/view/template/catalog/product_form.twig">
+        <operation error="abort">
+            <ignoreif><![CDATA[myparcel-slot:product-customs]]></ignoreif>
+            <search><![CDATA[<div id="tab-data" class="tab-pane">]]></search>
+            <add position="after"><![CDATA[              {# myparcel-slot:product-customs@0.2.0 #}{{ myparcel_customs_fields }}]]></add>
+        </operation>
+    </file>
+</modification>

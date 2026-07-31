@@ -1,0 +1,20 @@
+{# Customs fieldset injected into the product form's Data tab. Autoescape is OFF,
+   so every dynamic value must go through |e explicitly. #}
+<fieldset>
+  <legend>{{ text_legend|e }}</legend>
+  <div class="row mb-3">
+    <label for="input-myparcel-hs-code" class="col-sm-2 col-form-label">{{ text_hs_code|e }}</label>
+    <div class="col-sm-10"><input type="text" name="myparcel_hs_code" value="{{ hs_code|e }}" id="input-myparcel-hs-code" class="form-control"/></div>
+  </div>
+  <div class="row mb-3">
+    <label for="input-myparcel-country" class="col-sm-2 col-form-label">{{ text_country|e }}</label>
+    <div class="col-sm-10">
+      <select name="myparcel_country_of_origin" id="input-myparcel-country" class="form-select">
+        <option value="">{{ text_none|e }}</option>
+        {% for option in countries %}
+        <option value="{{ option.code|e }}"{% if option.selected %} selected{% endif %}>{{ option.name|e }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+</fieldset>

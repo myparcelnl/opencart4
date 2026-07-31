@@ -1,0 +1,531 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+const EXPECTED_OPENCART_VERSION = '4.1.0.3';
+const EXPECTED_SLOTS = [
+    'admin/view/template/sale/order.twig' => ['order-assets'],
+    'admin/view/template/sale/order_list.twig' => ['order-list-actions'],
+    'admin/view/template/sale/order_info.twig' => [
+        'order-info-toolbar',
+        'order-info-content',
+        'order-assets',
+    ],
+    'admin/view/template/catalog/product_form.twig' => ['product-customs'],
+];
+
+/** Stop the compatibility check with a readable validation error. */
+function fail(string $message, int $exitCode = 1): never
+{
+    fwrite(STDERR, "ERROR: $message\n");
+    exit($exitCode);
+}
+
+/**
+ * Load a language file and require every translation to be a string.
+ *
+ * @return array<string, string>
+ */
+function loadLanguageFile(string $path): array
+{
+    $translations = (static function (string $languageFile): array {
+        $_ = [];
+        require $languageFile;
+
+        return $_;
+    })($path);
+
+    foreach ($translations as $key => $value) {
+        if (!is_string($key) || !is_string($value)) {
+            fail("Language file contains a non-string key or value: $path");
+        }
+    }
+
+    return $translations;
+}
+
+/**
+ * Extract sprintf placeholders for language parity checks.
+ *
+ * @return string[]
+ */
+function placeholders(string $value): array
+{
+    preg_match_all('/%(?:\d+\$)?[bcdeEfFgGosuxX]/', str_replace('%%', '', $value), $matches);
+
+    return $matches[0];
+}
+
+/**
+ * Require every locale to contain the same keys and sprintf placeholders.
+ *
+ * @param array<string, string> $localePaths Locale code mapped to language-file path.
+ */
+function assertLanguageParity(array $localePaths, string $referenceLocale = 'en-gb'): int
+{
+    if (!isset($localePaths[$referenceLocale])) {
+        fail("Missing reference locale: $referenceLocale");
+    }
+
+    $reference = loadLanguageFile($localePaths[$referenceLocale]);
+
+    foreach ($localePaths as $locale => $path) {
+        if ($locale === $referenceLocale) {
+            continue;
+        }
+
+        $translations = loadLanguageFile($path);
+        $referenceOnly = array_values(array_diff(array_keys($reference), array_keys($translations)));
+        $localeOnly = array_values(array_diff(array_keys($translations), array_keys($reference)));
+
+        sort($referenceOnly);
+        sort($localeOnly);
+
+        if ($referenceOnly !== [] || $localeOnly !== []) {
+            fail(sprintf(
+                'Language keys differ for %s. %s-only: [%s]; %s-only: [%s]',
+                $path,
+                $referenceLocale,
+                implode(', ', $referenceOnly),
+                $locale,
+                implode(', ', $localeOnly)
+            ));
+        }
+
+        foreach ($reference as $key => $value) {
+            if (placeholders($value) !== placeholders($translations[$key])) {
+                fail(sprintf(
+                    "Language placeholder mismatch for '%s' in %s. %s: [%s]; %s: [%s]",
+                    $key,
+                    $path,
+                    $referenceLocale,
+                    implode(', ', placeholders($value)),
+                    $locale,
+                    implode(', ', placeholders($translations[$key]))
+                ));
+            }
+        }
+    }
+
+    return count($reference);
+}
+
+/** Find a child element or fail when the OCMOD contract requires it. */
+function element(
+    DOMElement $parent,
+    string $tagName,
+    string $context,
+    bool $required = true
+): ?DOMElement {
+    $node = $parent->getElementsByTagName($tagName)->item(0);
+
+    if ($node instanceof DOMElement) {
+        return $node;
+    }
+
+    if ($required) {
+        fail("Missing <$tagName> in $context");
+    }
+
+    return null;
+}
+
+/**
+ * Find the source-template lines containing a literal OCMOD search string.
+ *
+ * @param list<string> $lines
+ * @return int[]
+ */
+function matchingLineIndexes(array $lines, string $search): array
+{
+    $matches = [];
+
+    foreach ($lines as $lineNumber => $line) {
+        if (stripos($line, $search) !== false) {
+            $matches[] = $lineNumber;
+        }
+    }
+
+    return $matches;
+}
+
+/**
+ * Resolve and validate the OCMOD search element's optional index list.
+ *
+ * @return int[]
+ */
+function selectedMatchIndexes(DOMElement $search, int $matchCount, string $context): array
+{
+    $indexAttribute = trim($search->getAttribute('index'));
+
+    if ($indexAttribute === '') {
+        if ($matchCount !== 1) {
+            fail("$context must match exactly one line without an index; found $matchCount");
+        }
+
+        return [0];
+    }
+
+    $indexes = [];
+
+    foreach (explode(',', $indexAttribute) as $index) {
+        $index = trim($index);
+
+        if ($index === '' || !ctype_digit($index)) {
+            fail("$context has an invalid index list: '$indexAttribute'");
+        }
+
+        $value = (int) $index;
+
+        if ($value >= $matchCount) {
+            fail("$context selects index $value, but only $matchCount matching line(s) exist");
+        }
+
+        if (in_array($value, $indexes, true)) {
+            fail("$context selects index $value more than once");
+        }
+
+        $indexes[] = $value;
+    }
+
+    return $indexes;
+}
+
+/**
+ * Extract slot markers and require them to use the modification version.
+ *
+ * @return string[]
+ */
+function slotMarkers(string $add, string $version, string $context): array
+{
+    preg_match_all('/myparcel-slot:[a-z0-9-]+@[0-9A-Za-z.-]+/', $add, $matches);
+    $markers = array_values(array_unique($matches[0]));
+
+    if ($markers === []) {
+        fail("$context must add at least one revisioned myparcel-slot marker");
+    }
+
+    foreach ($markers as $marker) {
+        if (!str_ends_with($marker, '@' . $version)) {
+            fail("$context marker '$marker' does not use the XML version @$version");
+        }
+    }
+
+    return $markers;
+}
+
+/**
+ * Apply the literal, line-based OCMOD operation subset used by this extension.
+ *
+ * @param string[] $lines
+ * @param int[]    $selectedLines
+ * @return string[]
+ */
+function applyOperation(
+    array $lines,
+    array $selectedLines,
+    string $search,
+    string $add,
+    string $position,
+    int $offset,
+    string $context
+): array {
+    if ($offset !== 0) {
+        fail("$context uses unsupported non-zero offset $offset");
+    }
+
+    rsort($selectedLines);
+    $addLines = explode("\n", $add);
+
+    foreach ($selectedLines as $lineIndex) {
+        if ($position === 'replace') {
+            $replacements = 0;
+            $lines[$lineIndex] = str_replace($search, $add, $lines[$lineIndex], $replacements);
+
+            if ($replacements !== 1) {
+                fail("$context replacement must replace exactly one occurrence on its selected line; replaced $replacements");
+            }
+
+            continue;
+        }
+
+        if ($position === 'before') {
+            array_splice($lines, $lineIndex, 0, $addLines);
+            continue;
+        }
+
+        if ($position === 'after') {
+            array_splice($lines, $lineIndex + 1, 0, $addLines);
+            continue;
+        }
+
+        fail("$context uses unsupported add position '$position'");
+    }
+
+    return $lines;
+}
+
+if ($argc !== 2 || in_array($argv[1], ['-h', '--help'], true)) {
+    $script = basename($argv[0]);
+    fwrite(STDERR, "Usage: $script /path/to/opencart-4.1.0.3\n");
+    fwrite(STDERR, "The path may point to the checkout root or its upload directory.\n");
+    exit($argc === 2 ? 0 : 2);
+}
+
+$checkoutRoot = realpath($argv[1]);
+
+if ($checkoutRoot === false || !is_dir($checkoutRoot)) {
+    fail("OpenCart checkout does not exist: {$argv[1]}", 2);
+}
+
+$openCartRoot = is_dir($checkoutRoot . '/upload/admin/view/template')
+    ? $checkoutRoot . '/upload'
+    : $checkoutRoot;
+
+if (!is_dir($openCartRoot . '/admin/view/template')) {
+    fail("Could not find admin/view/template below: $checkoutRoot", 2);
+}
+
+$versionFile = $openCartRoot . '/index.php';
+$versionSource = is_file($versionFile) ? (string) file_get_contents($versionFile) : '';
+
+if (!preg_match("/define\(['\"]VERSION['\"],\s*['\"]([^'\"]+)['\"]\)/", $versionSource, $versionMatch)) {
+    fail("Could not read the OpenCart version from: $versionFile");
+}
+
+if ($versionMatch[1] !== EXPECTED_OPENCART_VERSION) {
+    fail(sprintf(
+        'Expected OpenCart %s, found %s in %s',
+        EXPECTED_OPENCART_VERSION,
+        $versionMatch[1],
+        $versionFile
+    ));
+}
+
+$repositoryRoot = dirname(__DIR__);
+$pluginRoot = $repositoryRoot . '/plugin/extension/myparcel';
+$xmlPath = $pluginRoot . '/ocmod/myparcel.ocmod.xml';
+
+if (!is_file($xmlPath)) {
+    fail("OCMOD XML does not exist: $xmlPath");
+}
+
+$dom = new DOMDocument();
+$previous = libxml_use_internal_errors(true);
+$loaded = $dom->load($xmlPath, LIBXML_NONET);
+$xmlErrors = libxml_get_errors();
+libxml_clear_errors();
+libxml_use_internal_errors($previous);
+
+if (!$loaded) {
+    $details = array_map(static fn (LibXMLError $error): string => trim($error->message), $xmlErrors);
+    fail('Invalid OCMOD XML: ' . implode('; ', $details));
+}
+
+$root = $dom->documentElement;
+
+if (!$root instanceof DOMElement || $root->tagName !== 'modification') {
+    fail('OCMOD XML must have a <modification> root element');
+}
+
+$version = trim((string) element($root, 'version', 'modification')->textContent);
+
+if ($version === '') {
+    fail('OCMOD XML has an empty <version>');
+}
+
+$fileNodes = $root->getElementsByTagName('file');
+
+if ($fileNodes->length === 0) {
+    fail('OCMOD XML contains no <file> entries');
+}
+
+$operationCount = 0;
+$markerCount = 0;
+$markersByFile = [];
+
+foreach ($fileNodes as $fileNode) {
+    if (!$fileNode instanceof DOMElement) {
+        continue;
+    }
+
+    $relativePath = trim($fileNode->getAttribute('path'));
+
+    if ($relativePath === '' || str_contains($relativePath, '..') || preg_match('/[*?{}]/', $relativePath)) {
+        fail("OCMOD file path must be one exact, safe path: '$relativePath'");
+    }
+
+    $sourcePath = $openCartRoot . '/' . ltrim($relativePath, '/');
+
+    if (!is_file($sourcePath)) {
+        fail("OCMOD target does not exist in OpenCart " . EXPECTED_OPENCART_VERSION . ": $relativePath");
+    }
+
+    $content = preg_replace('~\r?\n~', "\n", (string) file_get_contents($sourcePath));
+    $lines = explode("\n", $content);
+    $operations = $fileNode->getElementsByTagName('operation');
+
+    if ($operations->length === 0) {
+        fail("OCMOD target has no operations: $relativePath");
+    }
+
+    foreach ($operations as $operationIndex => $operation) {
+        if (!$operation instanceof DOMElement) {
+            continue;
+        }
+
+        $operationCount++;
+        $context = sprintf('%s operation %d', $relativePath, $operationIndex + 1);
+
+        if ($operation->getAttribute('error') !== 'abort') {
+            fail("$context must use error=\"abort\"");
+        }
+
+        $addNode = element($operation, 'add', $context);
+        $add = (string) $addNode->textContent;
+
+        if ($addNode->getAttribute('trim') === 'true') {
+            $add = trim($add);
+        }
+
+        $markers = slotMarkers($add, $version, $context);
+        $markerCount += count($markers);
+        $markersByFile[$relativePath] = array_merge($markersByFile[$relativePath] ?? [], $markers);
+
+        $ignoreIf = element($operation, 'ignoreif', $context, false);
+
+        if (!$ignoreIf instanceof DOMElement) {
+            fail("$context must define a literal, unversioned myparcel-slot ignoreif guard");
+        }
+
+        if ($ignoreIf->getAttribute('regex') === 'true') {
+            fail("$context uses a regex ignoreif; only literal slot guards are allowed");
+        }
+
+        $ignore = (string) $ignoreIf->textContent;
+
+        if ($ignore === '' || !str_starts_with($ignore, 'myparcel-slot:') || str_contains($ignore, '@')) {
+            fail("$context ignoreif must be an unversioned myparcel-slot marker");
+        }
+
+        foreach ($markers as $marker) {
+            if (!str_starts_with($marker, $ignore . '@')) {
+                fail("$context ignoreif '$ignore' does not guard marker '$marker'");
+            }
+        }
+
+        if (str_contains(implode("\n", $lines), $ignore)) {
+            foreach ($markers as $marker) {
+                if (!str_contains(implode("\n", $lines), $marker)) {
+                    fail("$context was ignored, but its revisioned marker '$marker' is absent");
+                }
+            }
+
+            fwrite(STDOUT, "SKIP $context (ignoreif already present)\n");
+            continue;
+        }
+
+        $searchNode = element($operation, 'search', $context);
+
+        if ($searchNode->getAttribute('regex') === 'true') {
+            fail("$context uses a regex search; compatibility checks require literal anchors");
+        }
+
+        $search = (string) $searchNode->textContent;
+
+        if ($searchNode->getAttribute('trim') !== 'false') {
+            $search = trim($search);
+        }
+
+        if ($search === '') {
+            fail("$context has an empty search anchor");
+        }
+
+        $matchingLines = matchingLineIndexes($lines, $search);
+        $selectedIndexes = selectedMatchIndexes($searchNode, count($matchingLines), $context);
+        $selectedLines = array_map(
+            static fn (int $index): int => $matchingLines[$index],
+            $selectedIndexes
+        );
+
+        $position = $addNode->getAttribute('position') ?: 'replace';
+        $offset = (int) ($addNode->getAttribute('offset') ?: 0);
+        $lines = applyOperation($lines, $selectedLines, $search, $add, $position, $offset, $context);
+        $modified = implode("\n", $lines);
+
+        foreach ($markers as $marker) {
+            if (!str_contains($modified, $marker)) {
+                fail("$context did not produce marker '$marker'");
+            }
+        }
+
+        fwrite(STDOUT, sprintf(
+            "PASS %s: %d matching line(s), selected [%s], marker(s) [%s]\n",
+            $context,
+            count($matchingLines),
+            implode(', ', $selectedIndexes),
+            implode(', ', $markers)
+        ));
+    }
+}
+
+$expectedMarkersByFile = [];
+
+foreach (EXPECTED_SLOTS as $path => $slots) {
+    $expectedMarkersByFile[$path] = array_map(
+        static fn (string $slot): string => "myparcel-slot:$slot@$version",
+        $slots
+    );
+}
+
+ksort($expectedMarkersByFile);
+ksort($markersByFile);
+
+foreach ($markersByFile as &$markers) {
+    sort($markers);
+}
+unset($markers);
+
+foreach ($expectedMarkersByFile as &$markers) {
+    sort($markers);
+}
+unset($markers);
+
+if ($markersByFile !== $expectedMarkersByFile) {
+    fail(sprintf(
+        "OCMOD slot contract differs. Expected: %s; found: %s",
+        json_encode($expectedMarkersByFile, JSON_UNESCAPED_SLASHES),
+        json_encode($markersByFile, JSON_UNESCAPED_SLASHES)
+    ));
+}
+
+$locales = ['en-gb', 'nl-nl', 'it-it'];
+$languageFiles = [
+    'admin/language/%s/module/myparcel.php',
+    'admin/language/%s/shipping/myparcel.php',
+    'catalog/language/%s/checkout/delivery_options.php',
+    'catalog/language/%s/shipping/myparcel.php',
+];
+$translationCount = 0;
+
+foreach ($languageFiles as $languageFile) {
+    $localePaths = [];
+
+    foreach ($locales as $locale) {
+        $localePaths[$locale] = $pluginRoot . '/' . sprintf($languageFile, $locale);
+    }
+
+    $translationCount += assertLanguageParity($localePaths);
+}
+
+fwrite(STDOUT, sprintf(
+    "PASS language parity: %d keys across EN/NL/IT with matching placeholders\n",
+    $translationCount
+));
+fwrite(STDOUT, sprintf(
+    "OK OpenCart %s compatibility contract: %d operation(s), %d marker occurrence(s)\n",
+    EXPECTED_OPENCART_VERSION,
+    $operationCount,
+    $markerCount
+));

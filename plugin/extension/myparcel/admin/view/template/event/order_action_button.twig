@@ -1,0 +1,9 @@
+{# Action data is semantic; this partial owns Bootstrap/icon/window presentation. #}
+{% set appearances = {
+  export: { variant: 'btn-success', icon: 'fa-truck', target: false },
+  label: { variant: 'btn-info', icon: 'fa-file-pdf', target: true },
+  trackTrace: { variant: 'btn-secondary', icon: 'fa-location-dot', target: true }
+} %}
+{% set appearance = appearances[button.action]|default({ variant: 'btn-secondary', icon: 'fa-circle-question', target: false }) %}
+{% set variant = button.failed ? 'btn-danger' : appearance.variant %}
+<a href="{{ button.href|e }}" data-myparcel="{{ button.action|e }}" data-myparcel-order-id="{{ button.order_id|e }}" data-myparcel-variant="{{ variant|e }}"{% if button.confirm %} data-myparcel-confirm="1"{% endif %}{% if appearance.target %} target="_blank" rel="noopener noreferrer"{% endif %} class="myparcel-action btn {{ variant|e }}" data-bs-toggle="tooltip" title="{{ button.title|e }}" aria-label="{{ button.title|e }}"><i class="fa-solid {{ appearance.icon|e }}"></i></a>
