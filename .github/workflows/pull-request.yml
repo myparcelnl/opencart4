@@ -2,12 +2,13 @@ name: Pull request
 
 on:
   pull_request:
+  merge_group:
 
 permissions:
   contents: read
 
 concurrency:
-  group: pull-request-${{ github.event.pull_request.number }}
+  group: pull-request-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -18,5 +19,5 @@ jobs:
     needs: test
     uses: ./.github/workflows/build.yml
     with:
-      artifact-name: myparcel-ocmod-pr-${{ github.event.pull_request.number }}-${{ github.sha }}
+      artifact-name: myparcel-ocmod-pr-${{ github.event.pull_request.number || github.run_id }}-${{ github.sha }}
       retention-days: 7
