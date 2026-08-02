@@ -32,8 +32,12 @@ In OpenCart:
 
 1. Go to **Extensions > Installer** and upload the package.
 2. Go to **Extensions > Extensions**, select **Modules** and install MyParcel.
-3. Refresh the OpenCart modifications cache when prompted.
-4. Open the MyParcel settings and enter the API key.
+3. On the same page, select **Shipping** and install MyParcel, then configure
+   the shipping method (rate, geo zone and status).
+4. Refresh the OpenCart modifications cache when prompted.
+5. Open the MyParcel settings, enter the API key and save.
+6. Click **Import carrier configuration** to load the carriers for your
+   account.
 
 ## Development
 
