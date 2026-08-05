@@ -1,0 +1,8 @@
+{
+  "name": "@myparcel/opencart4",
+  "private": true,
+  "description": "Release tooling for the MyParcel OpenCart 4 extension.",
+  "devDependencies": {
+    "@myparcel-dev/semantic-release-config": "^6.0.12"
+  }
+}

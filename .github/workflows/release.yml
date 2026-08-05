@@ -1,117 +1,53 @@
 name: Release
 
+# Manually dispatched. Semantic-release determines the version from the
+# conventional commits since the previous release, stamps it into the
+# extension manifest, builds the scoped package and publishes the GitHub
+# release. No release is created when there are no releasable commits.
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  validate:
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.release_version.outputs.version }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Validate release version
-        id: release_version
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if ! version="$(jq -er '.version | strings | select(length > 0)' plugin/extension/myparcel/install.json)"; then
-            echo "::error::install.json does not contain a valid version string."
-            exit 1
-          fi
-
-          semver_pattern='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
-
-          if [[ ! "$version" =~ $semver_pattern ]]; then
-            echo "::error::install.json contains an invalid semantic version: $version"
-            exit 1
-          fi
-
-          if [[ "$GITHUB_REF_NAME" != "v$version" ]]; then
-            echo "::error::Release tag $GITHUB_REF_NAME must match install.json version v$version."
-            exit 1
-          fi
-
-          git fetch --no-tags origin main:refs/remotes/origin/main
-
-          if ! git merge-base --is-ancestor HEAD origin/main; then
-            echo "::error::Release tags must point to a commit on main."
-            exit 1
-          fi
-
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-
   test:
-    needs: validate
     uses: ./.github/workflows/test.yml
 
-  build:
-    needs:
-      - validate
-      - test
-    uses: ./.github/workflows/build.yml
-    with:
-      artifact-name: myparcel-opencart4-${{ needs.validate.outputs.version }}
-      retention-days: 1
-
-  publish:
-    needs:
-      - validate
-      - build
+  release:
+    needs: test
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: Download package artifact
-        uses: actions/download-artifact@v4
+      - uses: myparcelnl/actions/setup-git-credentials@v5
+        id: credentials
         with:
-          name: myparcel-opencart4-${{ needs.validate.outputs.version }}
-          path: release-artifact
+          app-id: ${{ secrets.MYPARCEL_APP_ID }}
+          private-key: ${{ secrets.MYPARCEL_APP_PRIVATE_KEY }}
 
-      - name: Publish GitHub release
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          # The publish job runs without a checkout; point gh at the repository.
-          GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.ref_name }}
-          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
-        run: |
-          set -euo pipefail
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.credentials.outputs.token }}
+          fetch-depth: 0
 
-          source_file="release-artifact/myparcel.ocmod.zip"
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: gd
+          tools: composer
 
-          if [[ ! -f "$source_file" ]]; then
-            echo "::error::The release package was not found at $source_file."
-            exit 1
-          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
 
-          # OpenCart derives the extension code from the zip filename, so the
-          # asset must stay literally myparcel.ocmod.zip. The version lives in
-          # the asset label and the release title.
-          release_args=(
-            release create "$RELEASE_TAG"
-            "$source_file#MyParcel OpenCart ${RELEASE_VERSION} (myparcel.ocmod.zip)"
-            --verify-tag
-            --generate-notes
-            --title "MyParcel OpenCart ${RELEASE_VERSION}"
-          )
+      - name: Install release tooling
+        run: npm ci
 
-          if [[ "$RELEASE_VERSION" == *-* ]]; then
-            release_args+=(--prerelease)
-          fi
-
-          gh "${release_args[@]}"
+      - uses: myparcelnl/actions/semantic-release@v5
+        with:
+          token: ${{ steps.credentials.outputs.token }}
