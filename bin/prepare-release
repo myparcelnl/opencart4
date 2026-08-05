@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Called by semantic-release during the prepare step: stamp the release version
+# into the extension manifest and README, then build the installable package.
+
+VERSION="${1:?usage: bin/prepare-release <version>}"
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+MANIFEST="${REPO_ROOT}/plugin/extension/myparcel/install.json"
+
+command -v jq >/dev/null 2>&1 || { echo "jq not found on PATH" >&2; exit 1; }
+
+tmp="$(mktemp)"
+jq --arg version "$VERSION" '.version = $version' "$MANIFEST" > "$tmp"
+mv "$tmp" "$MANIFEST"
+
+# Keep the README's manifest-version line in sync.
+sed -i.bak -E "s/extension manifest is \`[^\`]+\`/extension manifest is \`${VERSION}\`/" "${REPO_ROOT}/README.md"
+rm -f "${REPO_ROOT}/README.md.bak"
+
+"${REPO_ROOT}/bin/build-release-zip"
