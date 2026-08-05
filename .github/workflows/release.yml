@@ -93,18 +93,18 @@ jobs:
           set -euo pipefail
 
           source_file="release-artifact/myparcel.ocmod.zip"
-          release_file="release-artifact/myparcel-opencart4-${RELEASE_VERSION}.ocmod.zip"
 
           if [[ ! -f "$source_file" ]]; then
             echo "::error::The release package was not found at $source_file."
             exit 1
           fi
 
-          mv "$source_file" "$release_file"
-
+          # OpenCart derives the extension code from the zip filename, so the
+          # asset must stay literally myparcel.ocmod.zip. The version lives in
+          # the asset label and the release title.
           release_args=(
             release create "$RELEASE_TAG"
-            "$release_file#MyParcel OpenCart ${RELEASE_VERSION}"
+            "$source_file#MyParcel OpenCart ${RELEASE_VERSION} (myparcel.ocmod.zip)"
             --verify-tag
             --generate-notes
             --title "MyParcel OpenCart ${RELEASE_VERSION}"
