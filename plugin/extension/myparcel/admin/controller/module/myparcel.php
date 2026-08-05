@@ -191,6 +191,7 @@ class Myparcel extends \Opencart\System\Engine\Controller
      */
     public function save(): void
     {
+        OpenCartCompatibility::guardJsonOutput();
         $this->load->language('extension/myparcel/module/myparcel');
 
         $json = [];
@@ -262,6 +263,7 @@ class Myparcel extends \Opencart\System\Engine\Controller
      */
     public function apiKeyCheck(): void
     {
+        OpenCartCompatibility::guardJsonOutput();
         $this->load->language('extension/myparcel/module/myparcel');
         $this->response->addHeader('Content-Type: application/json');
 
@@ -302,6 +304,7 @@ class Myparcel extends \Opencart\System\Engine\Controller
      */
     public function importCapabilities(): void
     {
+        OpenCartCompatibility::guardJsonOutput();
         $this->load->language('extension/myparcel/module/myparcel');
         $this->response->addHeader('Content-Type: application/json');
 
