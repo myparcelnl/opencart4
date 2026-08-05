@@ -90,7 +90,7 @@ $_['help_shipping_link'] = 'Configura la tariffa di spedizione MyParcel, la clas
 // Capabilities
 $_['text_carrier_config'] = 'Configurazione corrieri';
 $_['entry_capabilities'] = 'Capabilities';
-$_['text_save_first'] = 'Le capabilities vengono recuperate con la chiave API salvata: salva prima le impostazioni.';
+$_['text_save_first'] = 'Le capabilities vengono recuperate con la chiave API salvata. Un test riuscito della chiave salva automaticamente le impostazioni.';
 $_['text_importing'] = 'Importazione in corso…';
 $_['text_capabilities_imported'] = 'Configurazione corrieri aggiornata';
 $_['text_capabilities_error'] = 'Impossibile importare la configurazione corrieri';

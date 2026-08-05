@@ -378,6 +378,9 @@ document.getElementById('button-test-api-key').addEventListener('click', functio
           info += json.shop_id ? ', ' + myparcelText.shop + ' ' + json.shop_id + ')' : ')';
         }
         feedback.innerHTML = '<span class="text-success"><i class="fa-solid fa-circle-check"></i> ' + myparcelText.valid + info + '</span>';
+        // Save right away so the carrier import works without a separate save
+        // step; OpenCart's ajax form binding shows its own confirmation.
+        document.getElementById('form-module').requestSubmit();
       } else if (json.reason === 'transport_error') {
         feedback.innerHTML = '<span class="text-warning"><i class="fa-solid fa-triangle-exclamation"></i> ' + (json.message || myparcelText.transport) + '</span>';
       } else {
