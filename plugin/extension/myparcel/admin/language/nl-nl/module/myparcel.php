@@ -90,7 +90,7 @@ $_['help_shipping_link'] = 'Stel het MyParcel-verzendtarief, de belastingklasse 
 // Capabilities
 $_['text_carrier_config'] = 'Vervoerder-configuratie';
 $_['entry_capabilities'] = 'Capabilities';
-$_['text_save_first'] = 'Capabilities worden opgehaald met je opgeslagen API-sleutel — sla eerst op.';
+$_['text_save_first'] = 'Capabilities worden opgehaald met je opgeslagen API-sleutel. Een geslaagde sleuteltest slaat je instellingen automatisch op.';
 $_['text_importing'] = 'Bezig met importeren…';
 $_['text_capabilities_imported'] = 'Vervoerder-configuratie bijgewerkt';
 $_['text_capabilities_error'] = 'Kon de vervoerder-configuratie niet importeren';

@@ -90,7 +90,7 @@ $_['help_shipping_link'] = 'Configure the MyParcel shipping rate, tax class and 
 // Capabilities
 $_['text_carrier_config'] = 'Carrier configuration';
 $_['entry_capabilities'] = 'Capabilities';
-$_['text_save_first'] = 'Capabilities are fetched with your saved API key — save first.';
+$_['text_save_first'] = 'Capabilities are fetched with your saved API key. A successful key test saves your settings automatically.';
 $_['text_importing'] = 'Importing…';
 $_['text_capabilities_imported'] = 'Carrier configuration updated';
 $_['text_capabilities_error'] = 'Could not import carrier configuration';

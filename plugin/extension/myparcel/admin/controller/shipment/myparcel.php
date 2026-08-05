@@ -22,6 +22,7 @@ use MyParcelNL\OpenCart\Core\Service\Shipment\ShipmentApiService;
 use MyParcelNL\OpenCart\Core\Service\Shipment\ShipmentExportValidator;
 use MyParcelNL\OpenCart\Core\Settings\SettingKeys;
 use MyParcelNL\OpenCart\Core\Settings\Settings;
+use MyParcelNL\OpenCart\Core\Support\OpenCartCompatibility;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsShipmentStatus;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentParametersPaperSize;
 use MyParcelNL\Sdk\Collection\ShipmentCollection;
@@ -43,6 +44,7 @@ class Myparcel extends \Opencart\System\Engine\Controller
      */
     public function export(): void
     {
+        OpenCartCompatibility::guardJsonOutput();
         $this->load->language('extension/myparcel/module/myparcel');
         $this->response->addHeader('Content-Type: application/json');
 
@@ -190,6 +192,8 @@ class Myparcel extends \Opencart\System\Engine\Controller
      */
     public function label(): void
     {
+        // Also guards the PDF body: notice output would corrupt the download.
+        OpenCartCompatibility::guardJsonOutput();
         $this->load->language('extension/myparcel/module/myparcel');
 
         if (!$this->user->hasPermission('modify', 'extension/myparcel/shipment/myparcel')) {
@@ -244,6 +248,7 @@ class Myparcel extends \Opencart\System\Engine\Controller
     /** Refresh and open an exported order's track & trace. */
     public function trackTrace(): void
     {
+        OpenCartCompatibility::guardJsonOutput();
         $this->load->language('extension/myparcel/module/myparcel');
         $ajax = $this->isAjaxRequest();
 
