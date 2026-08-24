@@ -45,6 +45,38 @@ class ContractDefinitionsTest extends TestCase
         self::assertSame(1, $definitions->summary()['carrier_count']);
     }
 
+    public function testDropsItemsTheSdkCannotEncodeAndKeepsTheRest(): void
+    {
+        $known = new class implements JsonSerializable {
+            public function jsonSerialize(): array
+            {
+                return ['carrier' => 'POSTNL'];
+            }
+        };
+        $unknown = new class implements JsonSerializable {
+            public function getCarrier(): string
+            {
+                return 'NEW_ACCEPTANCE_CARRIER';
+            }
+
+            public function jsonSerialize(): array
+            {
+                throw new \InvalidArgumentException("Invalid value for enum 'Carrier'");
+            }
+        };
+
+        $skipped = [];
+        $items = ContractDefinitions::filterEncodable(
+            [$known, $unknown],
+            static function ($item, \Throwable $e) use (&$skipped): void {
+                $skipped[] = [$item->getCarrier(), $e->getMessage()];
+            }
+        );
+
+        self::assertSame([$known], $items);
+        self::assertSame([['NEW_ACCEPTANCE_CARRIER', "Invalid value for enum 'Carrier'"]], $skipped);
+    }
+
     public function testAddsAnImportErrorWithoutDroppingDefinitions(): void
     {
         $definitions = ContractDefinitions::fromArray([

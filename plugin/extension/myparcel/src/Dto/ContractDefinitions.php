@@ -127,6 +127,33 @@ final class ContractDefinitions
     }
 
     /**
+     * Keep only the items the installed SDK can JSON-encode. The SDK validates
+     * enums when serializing, so a contract with a value the generated client
+     * does not know yet (e.g. a carrier that only exists on acceptance) would
+     * make normalise() fail the whole import.
+     *
+     * @param array<int, mixed> $items
+     * @param callable(mixed, \Throwable): void|null $onSkip Called per dropped item.
+     * @return array<int, mixed>
+     */
+    public static function filterEncodable(array $items, ?callable $onSkip = null): array
+    {
+        return array_values(array_filter($items, static function ($item) use ($onSkip): bool {
+            try {
+                json_encode($item, JSON_THROW_ON_ERROR);
+
+                return true;
+            } catch (\Throwable $e) {
+                if ($onSkip !== null) {
+                    $onSkip($item, $e);
+                }
+
+                return false;
+            }
+        }));
+    }
+
+    /**
      * Convert SDK JsonSerializable objects to the stored array shape.
      *
      * @param array<string, mixed> $raw

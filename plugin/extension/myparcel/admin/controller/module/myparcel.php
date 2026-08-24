@@ -330,6 +330,16 @@ class Myparcel extends \Opencart\System\Engine\Controller
             $accountId = (string) $principal->getAccountId();
             $environment = $acceptance ? Environment::ACCEPTANCE : Environment::PRODUCTION;
             $items = (new CapabilitiesService())->getContractDefinitions($apiKey, $acceptance);
+            $items = ContractDefinitions::filterEncodable($items, function ($item, \Throwable $e): void {
+                $carrier = is_object($item) && method_exists($item, 'getCarrier')
+                    ? (string) $item->getCarrier()
+                    : 'unknown';
+                $this->log->write(sprintf(
+                    '[MyParcel] Skipped contract definition carrier=%s not supported by the installed SDK: %s',
+                    $carrier,
+                    str_replace(["\r", "\n"], ' ', mb_substr($e->getMessage(), 0, 200))
+                ));
+            });
             $previous = $this->contractDefinitions();
             $previousDefault = null;
 
