@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-beta.5](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.4...v1.0.0-beta.5) (2026-08-24)
+
+
+### :bug: Bug Fixes
+
+* update myparcelnl/sdk to 11.0.0-beta.33 ([fa35802](https://github.com/myparcelnl/opencart4/commit/fa35802606af695effd740c7865805145eda80e1))
+
 ## [1.0.0-beta.4](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.3...v1.0.0-beta.4) (2026-08-24)
 
 
