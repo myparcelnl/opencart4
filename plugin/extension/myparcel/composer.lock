@@ -339,16 +339,16 @@
         },
         {
             "name": "myparcelnl/sdk",
-            "version": "11.0.0-beta.29",
+            "version": "11.0.0-beta.32",
             "source": {
                 "type": "git",
                 "url": "https://github.com/myparcelnl/sdk.git",
-                "reference": "4426ae8de01434bba3c2ecab9b3e0c946535597d"
+                "reference": "fd7baf513e6f686e06b7ab2cb1d474b98f35ab6d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/myparcelnl/sdk/zipball/4426ae8de01434bba3c2ecab9b3e0c946535597d",
-                "reference": "4426ae8de01434bba3c2ecab9b3e0c946535597d",
+                "url": "https://api.github.com/repos/myparcelnl/sdk/zipball/fd7baf513e6f686e06b7ab2cb1d474b98f35ab6d",
+                "reference": "fd7baf513e6f686e06b7ab2cb1d474b98f35ab6d",
                 "shasum": ""
             },
             "require": {
@@ -399,9 +399,9 @@
             ],
             "support": {
                 "issues": "https://github.com/myparcelnl/sdk/issues",
-                "source": "https://github.com/myparcelnl/sdk/tree/v11.0.0-beta.29"
+                "source": "https://github.com/myparcelnl/sdk/tree/v11.0.0-beta.32"
             },
-            "time": "2026-07-09T13:27:42+00:00"
+            "time": "2026-08-18T09:32:29+00:00"
         },
         {
             "name": "psr/http-client",
