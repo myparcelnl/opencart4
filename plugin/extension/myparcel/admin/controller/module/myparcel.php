@@ -395,6 +395,13 @@ class Myparcel extends \Opencart\System\Engine\Controller
         } catch (\Throwable $e) {
             $reason = $this->classifyApiError($e);
             $this->contractDefinitionsCache()->storeLastError($this->settingModel(), $reason);
+            $this->log->write(sprintf(
+                '[MyParcel] Capabilities import failed environment=%s exception=%s code=%d message=%s',
+                $acceptance ? Environment::ACCEPTANCE : Environment::PRODUCTION,
+                $e::class,
+                $e->getCode(),
+                str_replace(["\r", "\n"], ' ', mb_substr($e->getMessage(), 0, 300))
+            ));
             $this->respondInvalid($reason, $this->language->get(
                 $reason === 'invalid_key' ? 'text_api_key_invalid' : 'text_capabilities_error'
             ));
