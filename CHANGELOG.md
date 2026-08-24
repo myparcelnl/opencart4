@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-beta.3](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.2...v1.0.0-beta.3) (2026-08-24)
+
+
+### :bug: Bug Fixes
+
+* log the exception when the capabilities import fails ([e8132f7](https://github.com/myparcelnl/opencart4/commit/e8132f7fc2362363e342fc62e21881fb7e79c24f))
+* update myparcelnl/sdk to 11.0.0-beta.32 ([b7a08c7](https://github.com/myparcelnl/opencart4/commit/b7a08c700c63ade691012886db1bf1f09c9b7134))
+
 ## [1.0.0-beta.2](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2026-08-05)
 
 
