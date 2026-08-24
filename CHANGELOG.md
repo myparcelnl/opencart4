@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-beta.4](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.3...v1.0.0-beta.4) (2026-08-24)
+
+
+### :bug: Bug Fixes
+
+* skip contract definitions the installed SDK cannot serialize ([d51cddb](https://github.com/myparcelnl/opencart4/commit/d51cddb93350daeedd6f6e66a1a94b613d5b7ea3))
+
 ## [1.0.0-beta.3](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.2...v1.0.0-beta.3) (2026-08-24)
 
 
