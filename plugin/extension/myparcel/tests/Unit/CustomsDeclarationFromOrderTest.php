@@ -80,6 +80,29 @@ class CustomsDeclarationFromOrderTest extends TestCase
         self::assertSame(1000, $declaration?->getWeight());
     }
 
+    public function testUsesConfiguredPackageContents(): void
+    {
+        $declaration = (new CustomsDeclarationFromOrder(
+            defaultCustomsCode: '000000',
+            defaultCountryOfOrigin: 'NL',
+            contentsType: ShipmentDefsCustomsShipmentType::GIFT
+        ))->create($this->order('GB'), 200);
+
+        self::assertSame(ShipmentDefsCustomsShipmentType::GIFT, $declaration?->getContents());
+    }
+
+    public function testInvalidPackageContentsFallsBackToCommercialGoods(): void
+    {
+        $declaration = (new CustomsDeclarationFromOrder(
+            defaultCustomsCode: '000000',
+            defaultCountryOfOrigin: 'NL',
+            contentsType: 999
+        ))
+            ->create($this->order('GB'), 200);
+
+        self::assertSame(ShipmentDefsCustomsShipmentType::COMMERCIAL_GOODS, $declaration?->getContents());
+    }
+
     public function testUsesGenericHsCodeWhenConfiguredFallbackIsEmpty(): void
     {
         $order = $this->order('US', [

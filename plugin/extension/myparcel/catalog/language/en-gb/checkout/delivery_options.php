@@ -14,7 +14,9 @@ $_['text_signatureTitle'] = 'Signature on delivery';
 $_['text_onlyRecipientTitle'] = 'Only recipient';
 $_['text_hideSenderTitle'] = 'Hide sender';
 $_['text_packageTypeMailbox'] = 'Mailbox package';
+$_['text_packageTypeLetter'] = 'Unfranked letter';
 $_['text_packageTypeDigitalStamp'] = 'Digital stamp';
+$_['text_packageTypePallet'] = 'Pallet';
 $_['text_packageTypePackageSmall'] = 'Small package';
 $_['text_pickupTitle'] = 'Pickup location';
 $_['text_pickUpFrom'] = 'Pickup from';
@@ -53,3 +55,5 @@ $_['text_error3501'] = 'No delivery options found for this address.';
 $_['text_error3505'] = 'The postal code or city is invalid.';
 $_['text_error3506'] = 'No address found for this postal code and house number.';
 $_['text_error3728'] = 'No pickup locations found for this address.';
+
+$_['hint_address'] = 'Enter your address and confirm it to see the delivery options.';

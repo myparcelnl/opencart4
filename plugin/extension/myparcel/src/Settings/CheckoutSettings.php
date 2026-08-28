@@ -17,8 +17,6 @@ final class CheckoutSettings
 
     public bool $deliveryOptionsEnabled;
 
-    public bool $showDeliveryDate;
-
     public int $deliveryDaysWindow;
 
     public int $dropOffDelay;
@@ -48,7 +46,6 @@ final class CheckoutSettings
         $settings = new self();
 
         $settings->deliveryOptionsEnabled = (bool) ($raw['delivery_options_enabled'] ?? true);
-        $settings->showDeliveryDate = (bool) ($raw['show_delivery_date'] ?? false);
         $settings->deliveryDaysWindow = max(0, (int) ($raw['delivery_days_window'] ?? 0));
         $settings->dropOffDelay = max(0, (int) ($raw['drop_off_delay'] ?? 0));
 
@@ -72,7 +69,6 @@ final class CheckoutSettings
     {
         return [
             'delivery_options_enabled' => $this->deliveryOptionsEnabled,
-            'show_delivery_date' => $this->showDeliveryDate,
             'delivery_days_window' => $this->deliveryDaysWindow,
             'drop_off_delay' => $this->dropOffDelay,
             'pickup_locations_default_view' => $this->pickupLocationsDefaultView,
@@ -92,7 +88,6 @@ final class CheckoutSettings
     public function toWidgetConfig(): array
     {
         return [
-            'showDeliveryDate' => $this->showDeliveryDate,
             'deliveryDaysWindow' => $this->deliveryDaysWindow,
             'dropOffDelay' => $this->dropOffDelay,
             'pickupLocationsDefaultView' => $this->pickupLocationsDefaultView,

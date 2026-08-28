@@ -14,7 +14,9 @@ $_['text_signatureTitle'] = 'Firma alla consegna';
 $_['text_onlyRecipientTitle'] = 'Solo destinatario';
 $_['text_hideSenderTitle'] = 'Nascondi mittente';
 $_['text_packageTypeMailbox'] = 'Pacco per cassetta postale';
+$_['text_packageTypeLetter'] = 'Lettera non affrancata';
 $_['text_packageTypeDigitalStamp'] = 'Francobollo digitale';
+$_['text_packageTypePallet'] = 'Pallet';
 $_['text_packageTypePackageSmall'] = 'Pacco piccolo';
 $_['text_pickupTitle'] = 'Punto di ritiro';
 $_['text_pickUpFrom'] = 'Ritira presso';
@@ -53,3 +55,5 @@ $_['text_error3501'] = 'Nessuna opzione di consegna trovata per questo indirizzo
 $_['text_error3505'] = 'Il CAP o la città non sono validi.';
 $_['text_error3506'] = 'Nessun indirizzo trovato per questo CAP e numero civico.';
 $_['text_error3728'] = 'Nessun punto di ritiro trovato per questo indirizzo.';
+
+$_['hint_address'] = 'Inserisci il tuo indirizzo e confermalo per vedere le opzioni di consegna.';

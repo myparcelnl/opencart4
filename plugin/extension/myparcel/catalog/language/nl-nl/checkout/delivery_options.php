@@ -14,7 +14,9 @@ $_['text_signatureTitle'] = 'Handtekening voor ontvangst';
 $_['text_onlyRecipientTitle'] = 'Alleen ontvanger';
 $_['text_hideSenderTitle'] = 'Afzender verbergen';
 $_['text_packageTypeMailbox'] = 'Brievenbuspakje';
+$_['text_packageTypeLetter'] = 'Ongefrankeerde brief';
 $_['text_packageTypeDigitalStamp'] = 'Digitale postzegel';
+$_['text_packageTypePallet'] = 'Pallet';
 $_['text_packageTypePackageSmall'] = 'Klein pakket';
 $_['text_pickupTitle'] = 'Afhaallocatie';
 $_['text_pickUpFrom'] = 'Afhalen bij';
@@ -53,3 +55,5 @@ $_['text_error3501'] = 'Geen bezorgopties gevonden voor dit adres.';
 $_['text_error3505'] = 'De postcode of plaats is ongeldig.';
 $_['text_error3506'] = 'Geen adres gevonden voor deze postcode en dit huisnummer.';
 $_['text_error3728'] = 'Geen afhaallocaties gevonden voor dit adres.';
+
+$_['hint_address'] = 'Vul je adres in en bevestig het om de bezorgopties te zien.';

@@ -10,7 +10,6 @@ use MyParcelNL\OpenCart\Core\Settings\Settings;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentCustomsDeclaration;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentCustomsDeclarationItem;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
-use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsCustomsShipmentType;
 use MyParcelNL\Sdk\Services\CountryCodes;
 use MyParcelNL\Sdk\Services\CountryService;
 
@@ -31,16 +30,22 @@ final class CustomsDeclarationFromOrder
 
     private string $defaultCountryOfOrigin;
 
+    private int $contentsType;
+
     private CountryService $countryService;
 
     /** Configure order-level fallbacks used when a product has no customs values. */
     public function __construct(
         string $defaultCustomsCode = self::DEFAULT_CUSTOMS_CODE,
         string $defaultCountryOfOrigin = '',
-        ?CountryService $countryService = null
+        ?CountryService $countryService = null,
+        int $contentsType = Settings::DEFAULT_CUSTOMS_CONTENTS_TYPE
     ) {
         $this->defaultCustomsCode = trim($defaultCustomsCode) ?: self::DEFAULT_CUSTOMS_CODE;
         $this->defaultCountryOfOrigin = strtoupper(trim($defaultCountryOfOrigin));
+        $this->contentsType = in_array($contentsType, Settings::customsContentsTypes(), true)
+            ? $contentsType
+            : Settings::DEFAULT_CUSTOMS_CONTENTS_TYPE;
         $this->countryService = $countryService ?? new CountryService();
     }
 
@@ -75,7 +80,7 @@ final class CustomsDeclarationFromOrder
         }
 
         return (new RefShipmentCustomsDeclaration())
-            ->setContents(ShipmentDefsCustomsShipmentType::COMMERCIAL_GOODS)
+            ->setContents($this->contentsType)
             ->setInvoice(mb_substr($order->reference, 0, 150))
             ->setWeight(max(1, $shipmentWeight))
             ->setItems($items);

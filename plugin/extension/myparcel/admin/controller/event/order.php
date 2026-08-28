@@ -20,6 +20,13 @@ class Order extends \Opencart\System\Engine\Controller
 
     private const LANGUAGE_ROUTE = self::EXTENSION_ROUTE . 'module/myparcel';
 
+    /**
+     * OpenCart's core language event copies every loaded language key into the
+     * data of any view rendered afterwards. Loading with a prefix keeps generic
+     * keys such as heading_title from overriding the host page's own text.
+     */
+    private const LANGUAGE_PREFIX = 'myparcel';
+
     private const SHIPMENT_MODEL_ROUTE = self::EXTENSION_ROUTE . 'shipment/myparcel';
 
     private const SHIPMENT_ACTION_ROUTE = self::SHIPMENT_MODEL_ROUTE . '.';
@@ -163,7 +170,7 @@ class Order extends \Opencart\System\Engine\Controller
 
         $exported = $state !== null && $state['shipment_id'] > 0;
         $lastError = trim((string) ($state['last_error'] ?? ''));
-        $defaultTitle = $this->language->get($exported ? 'button_export_again' : 'button_export_order');
+        $defaultTitle = $this->text($exported ? 'button_export_again' : 'button_export_order');
 
         // Once a shipment exists, the export button says so and asks the click
         // handler to confirm before appending another shipment.
@@ -183,13 +190,13 @@ class Order extends \Opencart\System\Engine\Controller
                 'label',
                 $orderId,
                 $userToken,
-                sprintf($this->language->get('button_label_latest'), $shipmentId)
+                sprintf($this->text('button_label_latest'), $shipmentId)
             );
             $buttons[] = $this->button(
                 'trackTrace',
                 $orderId,
                 $userToken,
-                sprintf($this->language->get('button_track_latest'), $shipmentId)
+                sprintf($this->text('button_track_latest'), $shipmentId)
             );
         }
 
@@ -200,8 +207,8 @@ class Order extends \Opencart\System\Engine\Controller
         if ($count >= 2) {
             $countBadge = [
                 'href' => $this->url->link(self::ORDER_INFO_ROUTE, "user_token=$userToken&order_id=$orderId", true),
-                'label' => sprintf($this->language->get('text_shipment_count'), $count),
-                'title' => $this->language->get('text_shipment_count_help'),
+                'label' => sprintf($this->text('text_shipment_count'), $count),
+                'title' => $this->text('text_shipment_count_help'),
             ];
         }
 
@@ -315,14 +322,14 @@ class Order extends \Opencart\System\Engine\Controller
                         'label',
                         $orderId,
                         $userToken,
-                        sprintf($this->language->get('button_label_shipment'), $shipmentId),
+                        sprintf($this->text('button_label_shipment'), $shipmentId),
                         $shipmentId
                     ),
                     $this->button(
                         'trackTrace',
                         $orderId,
                         $userToken,
-                        sprintf($this->language->get('button_track_shipment'), $shipmentId),
+                        sprintf($this->text('button_track_shipment'), $shipmentId),
                         $shipmentId
                     ),
                 ],
@@ -344,17 +351,17 @@ class Order extends \Opencart\System\Engine\Controller
             'error' => $lastError,
             'shipments' => $rows,
             'text' => [
-                'close' => $this->language->get('button_close'),
-                'heading' => $this->language->get('text_shipments_heading'),
-                'intro' => $this->language->get('text_shipments_intro'),
-                'column_shipment' => $this->language->get('column_shipment'),
-                'column_barcode' => $this->language->get('column_barcode'),
-                'column_tracking' => $this->language->get('column_tracking'),
-                'column_created' => $this->language->get('column_created'),
-                'column_actions' => $this->language->get('column_actions'),
-                'tracking_ready' => $this->language->get('text_tracking_ready'),
-                'tracking_processing' => $this->language->get('text_tracking_processing'),
-                'tracking_unavailable' => $this->language->get('text_tracking_unavailable'),
+                'close' => $this->text('button_close'),
+                'heading' => $this->text('text_shipments_heading'),
+                'intro' => $this->text('text_shipments_intro'),
+                'column_shipment' => $this->text('column_shipment'),
+                'column_barcode' => $this->text('column_barcode'),
+                'column_tracking' => $this->text('column_tracking'),
+                'column_created' => $this->text('column_created'),
+                'column_actions' => $this->text('column_actions'),
+                'tracking_ready' => $this->text('text_tracking_ready'),
+                'tracking_processing' => $this->text('text_tracking_processing'),
+                'tracking_unavailable' => $this->text('text_tracking_unavailable'),
             ],
         ]);
     }
@@ -370,7 +377,7 @@ class Order extends \Opencart\System\Engine\Controller
 
         // All text_js_* keys are passed automatically. New JS translations
         // therefore need one language entry, not a second allowlist here.
-        $i18n = $this->language->all('text_js');
+        $i18n = $this->language->all(self::LANGUAGE_PREFIX . '_text_js');
 
         $file = self::EXTENSION_ROUTE . self::ACTIONS_SCRIPT;
         $path = DIR_EXTENSION . 'myparcel/' . self::ACTIONS_SCRIPT;
@@ -435,7 +442,13 @@ class Order extends \Opencart\System\Engine\Controller
     /** Load the shared admin language file used by all order fragments. */
     private function loadLanguage(): void
     {
-        $this->load->language(self::LANGUAGE_ROUTE);
+        $this->load->language(self::LANGUAGE_ROUTE, self::LANGUAGE_PREFIX);
+    }
+
+    /** Read one of our own language keys through the collision-free prefix. */
+    private function text(string $key): string
+    {
+        return $this->language->get(self::LANGUAGE_PREFIX . '_' . $key);
     }
 
     /** Load the shipment model through the centralized extension route. */

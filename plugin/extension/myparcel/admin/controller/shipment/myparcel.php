@@ -122,8 +122,9 @@ class Myparcel extends \Opencart\System\Engine\Controller
                 $settings->fallbackWeight,
                 $fallbackReporter,
                 new CustomsDeclarationFromOrder(
-                    $settings->defaultCustomsCode,
-                    $settings->defaultCountryOfOrigin ?: $storeDefaults['country']
+                    defaultCustomsCode: $settings->defaultCustomsCode,
+                    defaultCountryOfOrigin: $settings->defaultCountryOfOrigin ?: $storeDefaults['country'],
+                    contentsType: $settings->customsContentsType
                 )
             ))
                 ->mapOrderToShipment($orderDto, $deliveryOptions);

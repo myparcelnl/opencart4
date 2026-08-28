@@ -21,11 +21,29 @@ final class PlatformResolver
     ];
 
     /**
+     * ISO 3166-1 alpha-2 home country per IAM platform. Used for shop-configuration
+     * checks that only make sense for the account's own country.
+     *
+     * @var array<string, string>
+     */
+    private const IAM_TO_HOME_COUNTRY = [
+        IamPlatform::MYPARCEL_NL => 'NL',
+        IamPlatform::MYPARCEL_BE => 'BE',
+        IamPlatform::MYPARCEL_IT => 'IT',
+    ];
+
+    /**
      * Resolve the stored IAM platform to a widget slug, defaulting to MyParcel NL
      * when the value is missing (pre-platform blob) or unknown.
      */
     public static function toWidget(?string $iamPlatform): string
     {
         return self::IAM_TO_WIDGET[$iamPlatform] ?? PlatformName::MYPARCEL;
+    }
+
+    /** Home country of the account's platform, defaulting to NL like toWidget(). */
+    public static function homeCountry(?string $iamPlatform): string
+    {
+        return self::IAM_TO_HOME_COUNTRY[$iamPlatform] ?? 'NL';
     }
 }

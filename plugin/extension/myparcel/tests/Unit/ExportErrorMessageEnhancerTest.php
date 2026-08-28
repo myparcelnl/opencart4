@@ -33,9 +33,30 @@ final class ExportErrorMessageEnhancerTest extends TestCase
         );
     }
 
-    public function testLeavesUnrelatedPhysicalPropertiesErrorsUnchanged(): void
+    public function testAddsAdviceWhenTheApiOmitsTheDimensionName(): void
+    {
+        // Range violations often name only the range, not the dimension.
+        $message = 'Invalid physical properties: Moet tussen 15 en 180 liggen.';
+
+        self::assertSame(
+            $message . ' ' . self::DIMENSIONS_ADVICE,
+            $this->enhancer()->enhance($message, self::PHONE_ADVICE, self::DIMENSIONS_ADVICE)
+        );
+    }
+
+    public function testAddsAdviceForWeightViolationsToo(): void
     {
         $message = 'Invalid physical properties: Weight should be between 50 and 70000.';
+
+        self::assertSame(
+            $message . ' ' . self::DIMENSIONS_ADVICE,
+            $this->enhancer()->enhance($message, self::PHONE_ADVICE, self::DIMENSIONS_ADVICE)
+        );
+    }
+
+    public function testLeavesUnrelatedErrorsUnchanged(): void
+    {
+        $message = 'Invalid recipient: The postal code is malformed.';
 
         self::assertSame(
             $message,

@@ -36,7 +36,8 @@ class Checkout extends \Opencart\System\Engine\Controller
             return;
         }
 
-        $checkout = Settings::fromConfig($this->config)->checkout;
+        $settings = Settings::fromConfig($this->config);
+        $checkout = $settings->checkout;
 
         if (!$checkout->deliveryOptionsEnabled) {
             return;
@@ -49,7 +50,9 @@ class Checkout extends \Opencart\System\Engine\Controller
             return;
         }
 
-        $carrierSettings = $this->carrierSettings($definitions);
+        $carrierSettingsBuilder = new CarrierSettingsBuilder();
+        $packageType = $carrierSettingsBuilder->widgetPackageType($settings->defaultPackageType);
+        $carrierSettings = $this->carrierSettings($definitions, $packageType);
 
         if ($carrierSettings === []) {
             return;
@@ -67,9 +70,11 @@ class Checkout extends \Opencart\System\Engine\Controller
         $language = 'language=' . $this->config->get('config_language');
 
         $viewData = [
+            // Shown instead of an empty block until the shopper's address is known.
+            'myparcel_address_hint' => $this->language->get(self::LANGUAGE_PREFIX . '_hint_address'),
             'myparcel_config' => [
 
-                'config' => array_merge((new CarrierSettingsBuilder())->globalAllowFlags($carrierSettings), [
+                'config' => array_merge($carrierSettingsBuilder->globalAllowFlags($carrierSettings), [
                     'platform' => PlatformResolver::toWidget($definitions->platform),
                     'proxyCapabilities' => $this->url->link(
                         'extension/myparcel/proxy',
@@ -77,7 +82,7 @@ class Checkout extends \Opencart\System\Engine\Controller
                         true
                     ),
                     'carrierSettings' => $carrierSettings,
-                    'packageType' => CarrierSettingsBuilder::DEFAULT_PACKAGE_TYPE,
+                    'packageType' => $packageType,
                 ], $checkout->toWidgetConfig()),
                 'strings' => $this->strings(),
             ],
@@ -110,14 +115,15 @@ class Checkout extends \Opencart\System\Engine\Controller
      *
      * @return array<string, array<string, bool|int|string>>
      */
-    private function carrierSettings(ContractDefinitions $definitions): array
+    private function carrierSettings(ContractDefinitions $definitions, string $packageType): array
     {
         $storedCarriers = $this->model_setting_setting->getSetting(SettingKeys::CARRIERS);
         $carrierConfig = $storedCarriers[SettingKeys::CARRIERS] ?? [];
 
         return (new CarrierSettingsBuilder())->build(
             $definitions->toArray(),
-            is_array($carrierConfig) ? $carrierConfig : []
+            is_array($carrierConfig) ? $carrierConfig : [],
+            $packageType
         );
     }
 

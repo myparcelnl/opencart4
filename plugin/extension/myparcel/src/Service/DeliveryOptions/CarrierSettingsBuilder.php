@@ -16,7 +16,7 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentParametersCarrierName;
 final class CarrierSettingsBuilder
 {
     /** Delivery Options widget default package type; export defaults are configured in module settings. */
-    public const DEFAULT_PACKAGE_TYPE = 'package';
+    public const DEFAULT_PACKAGE_TYPE = PackageTypeMapping::DEFAULT_WIDGET_TYPE;
 
     /**
      * Capabilities carrier value => Delivery Options widget slug. Derived from the SDK
@@ -118,14 +118,25 @@ final class CarrierSettingsBuilder
      * Extract supported carriers and services from the imported contract definitions.
      *
      * @param array<string, mixed> $capabilitiesBlob
+     * @param string|null $packageType Optional widget package type used to filter contracts.
      *
      * @return array<string, array{carrier: string, slug: string, services: array<string, bool>}>
      */
-    public function supportedCarriers(array $capabilitiesBlob): array
+    public function supportedCarriers(array $capabilitiesBlob, ?string $packageType = null): array
     {
         $carriers = [];
+        $capabilityPackageType = $packageType !== null
+            ? PackageTypeMapping::toSdk($this->widgetPackageType($packageType))
+            : null;
 
         foreach ($this->contracts($capabilitiesBlob) as $contract) {
+            if (
+                $capabilityPackageType !== null
+                && !$this->contractSupportsPackageType($contract, $capabilityPackageType)
+            ) {
+                continue;
+            }
+
             $carrier = (string) ($contract['carrier'] ?? '');
             $slug = $this->carrierSlugs()[$carrier] ?? null;
 
@@ -215,12 +226,18 @@ final class CarrierSettingsBuilder
      *
      * @param array<string, mixed> $capabilitiesBlob
      * @param array<array-key, mixed> $adminSettings
+     * @param string $packageType Configured checkout package type.
      *
      * @return array<string, array<string, bool|int|string>>
      */
-    public function build(array $capabilitiesBlob, array $adminSettings): array
+    public function build(
+        array $capabilitiesBlob,
+        array $adminSettings,
+        string $packageType = self::DEFAULT_PACKAGE_TYPE
+    ): array
     {
-        $supported = $this->supportedCarriers($capabilitiesBlob);
+        $packageType = $this->widgetPackageType($packageType);
+        $supported = $this->supportedCarriers($capabilitiesBlob, $packageType);
         $settings = $this->mergeAdminSettings($capabilitiesBlob, $adminSettings);
         $carrierSettings = [];
 
@@ -234,7 +251,7 @@ final class CarrierSettingsBuilder
             $enabledServices = array_flip($admin['services'] ?? []);
             $row = [
                 'allowDeliveryOptions' => false,
-                'packageType' => self::DEFAULT_PACKAGE_TYPE,
+                'packageType' => $packageType,
             ];
 
             // Every allow key explicit: the widget falls back to its global defaults
@@ -270,6 +287,15 @@ final class CarrierSettingsBuilder
         }
 
         return $carrierSettings;
+    }
+
+    /**
+     * Normalise a stored export package type to a Delivery Options v7 slug.
+     * Unknown values fall back to the widget's regular-package default.
+     */
+    public function widgetPackageType(string $packageType): string
+    {
+        return PackageTypeMapping::toWidget($packageType) ?? self::DEFAULT_PACKAGE_TYPE;
     }
 
     /**
@@ -450,6 +476,18 @@ final class CarrierSettingsBuilder
             (array_key_exists($attributeKey, $options) && $options[$attributeKey] !== null)
             || (array_key_exists($sourceKey, $options) && $options[$sourceKey] !== null)
         );
+    }
+
+    /**
+     * Check whether one contract advertises the selected widget package type.
+     *
+     * @param array<string, mixed> $contract
+     */
+    private function contractSupportsPackageType(array $contract, string $packageType): bool
+    {
+        $packageTypes = $contract['packageTypes'] ?? $contract['package_types'] ?? [];
+
+        return is_array($packageTypes) && in_array($packageType, $packageTypes, true);
     }
 
     /**

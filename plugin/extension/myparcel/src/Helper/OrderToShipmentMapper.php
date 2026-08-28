@@ -9,11 +9,12 @@ use MyParcelNL\OpenCart\Core\Dto\DeliveryOptionsDto;
 use MyParcelNL\OpenCart\Core\Dto\OrderDto;
 use MyParcelNL\OpenCart\Core\Dto\RecipientDto;
 use MyParcelNL\OpenCart\Core\Service\DeliveryOptions\CarrierSettingsBuilder;
+use MyParcelNL\OpenCart\Core\Service\DeliveryOptions\PackageTypeMapping;
 use MyParcelNL\OpenCart\Core\Service\Shipment\CustomsDeclarationFromOrder;
 use MyParcelNL\OpenCart\Core\Service\Shipment\MissingRecipientFieldsException;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentPackageTypeV2;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentPickup as PickupModel;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesDeliveryTypeV2;
-use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentPostShipmentsRequestV11DataShipmentsInnerDropOffPoint as DropOffPointModel;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentPostShipmentsRequestV11DataShipmentsInnerPhysicalProperties as PhysicalPropertiesModel;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentPostShipmentsRequestV11DataShipmentsInnerRecipient as RecipientModel;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;
@@ -43,21 +44,6 @@ class OrderToShipmentMapper
         'same_day' => RefTypesDeliveryTypeV2::SAME_DAY,
     ];
 
-    /**
-     * Delivery Options package-type slug => generated Core API v2 value. Explicit
-     * aliases are checked before convention-based generated constants, notably
-     * `package_small` => `SMALL_PACKAGE`.
-     *
-     * @var array<string, string>
-     */
-    private const PACKAGE_TYPES = [
-        'package'       => RefShipmentPackageTypeV2::PACKAGE,
-        'mailbox'       => RefShipmentPackageTypeV2::MAILBOX,
-        'digital_stamp' => RefShipmentPackageTypeV2::DIGITAL_STAMP,
-        'package_small' => RefShipmentPackageTypeV2::SMALL_PACKAGE,
-        'envelope'      => RefShipmentPackageTypeV2::ENVELOPE,
-    ];
-
     /** @var Closure(string): void|null */
     private ?Closure $fallbackReporter;
 
@@ -71,15 +57,7 @@ class OrderToShipmentMapper
      */
     public static function packageTypeSlugs(): array
     {
-        $slugs = array_keys(self::PACKAGE_TYPES);
-
-        foreach (RefShipmentPackageTypeV2::getAllowableEnumValues() as $value) {
-            if (!in_array($value, self::PACKAGE_TYPES, true)) {
-                $slugs[] = strtolower($value);
-            }
-        }
-
-        return array_values(array_unique($slugs));
+        return PackageTypeMapping::exportSlugs();
     }
 
     /**
@@ -89,9 +67,7 @@ class OrderToShipmentMapper
      */
     public static function packageTypeValue(string $slug, ?callable $fallbackReporter = null): string
     {
-        $normalised = strtolower(trim($slug));
-        $value = self::PACKAGE_TYPES[$normalised]
-            ?? self::generatedEnumValue($normalised, RefShipmentPackageTypeV2::class);
+        $value = PackageTypeMapping::toSdk($slug);
 
         if ($value !== null) {
             return $value;
@@ -179,9 +155,9 @@ class OrderToShipmentMapper
     }
 
     /**
-     * Attach the chosen pickup location as a drop-off point. The widget stores it
-     * snake_case, matching the SDK model, so the array hydrates the model directly.
-     * Skipped when the data is incomplete, so we never send a half drop-off point.
+     * Attach the shopper's chosen pickup location to the shipment. A drop-off point
+     * is where the merchant hands in a parcel and is therefore a different field.
+     * Skipped when the data is incomplete, so we never send half a pickup address.
      */
     private function applyPickup(Shipment $shipment, ?DeliveryOptionsDto $deliveryOptions): void
     {
@@ -198,7 +174,7 @@ class OrderToShipmentMapper
             }
         }
 
-        $shipment->setDropOffPoint(new DropOffPointModel($pickup));
+        $shipment->setPickup(new PickupModel($pickup));
     }
 
     /** Build the SDK recipient model. */
@@ -209,6 +185,11 @@ class OrderToShipmentMapper
         $recipient->setCompany($dto->company);
         $recipient->setStreet($dto->street);
         $recipient->setNumber($dto->number);
+
+        if ($dto->numberSuffix !== null && $dto->numberSuffix !== '') {
+            $recipient->setNumberSuffix($dto->numberSuffix);
+        }
+
         $recipient->setPostalCode($dto->postalCode);
         $recipient->setCity($dto->city);
         $recipient->setCc($dto->cc);
@@ -258,7 +239,34 @@ class OrderToShipmentMapper
             }
         }
 
+        if ($deliveryOptions->deliveryDate !== null) {
+            $deliveryDate = $this->upcomingDeliveryDate($deliveryOptions->deliveryDate);
+
+            if ($deliveryDate !== null) {
+                $options->setDeliveryDate($deliveryDate);
+            }
+        }
+
         return $options;
+    }
+
+    /**
+     * Return the chosen delivery date, or null when that day has already passed.
+     * Orders are regularly exported days after checkout and the shipment API
+     * rejects past dates, so a stale choice is dropped instead of failing the export.
+     */
+    private function upcomingDeliveryDate(string $deliveryDate): ?string
+    {
+        if (substr($deliveryDate, 0, 10) < date('Y-m-d')) {
+            $this->reportDiagnostic(sprintf(
+                'Chosen delivery date %s has passed; exporting without a delivery date.',
+                substr($deliveryDate, 0, 10)
+            ));
+
+            return null;
+        }
+
+        return $deliveryDate;
     }
 
     /** Use the checkout package type when supported, otherwise the configured default. */
@@ -270,9 +278,7 @@ class OrderToShipmentMapper
             return $this->defaultPackageType;
         }
 
-        $normalised = strtolower(trim($slug));
-        $value = self::PACKAGE_TYPES[$normalised]
-            ?? self::generatedEnumValue($normalised, RefShipmentPackageTypeV2::class);
+        $value = PackageTypeMapping::toSdk($slug);
 
         if ($value !== null) {
             return $value;

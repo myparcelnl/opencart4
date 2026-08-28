@@ -36,7 +36,6 @@ $_['tab_checkout'] = 'Checkout';
 $_['tab_customs'] = 'Dogana';
 
 $_['entry_do_enabled'] = 'Opzioni di consegna';
-$_['entry_show_delivery_date'] = 'Mostra la data di consegna';
 $_['entry_delivery_days_window'] = 'Intervallo dei giorni di consegna';
 $_['entry_drop_off_delay'] = 'Ritardo di affidamento';
 $_['entry_pickup_default_view'] = 'Vista dei punti di ritiro';
@@ -45,32 +44,41 @@ $_['entry_exclude_parcel_lockers'] = 'Escludi i locker';
 $_['entry_compact_view'] = 'Vista compatta';
 $_['entry_pop_up_map'] = 'Mappa dei punti di ritiro in un pop-up';
 $_['help_do_enabled'] = 'Mostra il widget delle opzioni di consegna MyParcel nel checkout.';
-$_['help_delivery_days_window'] = 'Numero di giorni entro i quali il cliente può scegliere una data di consegna (0 = valore predefinito del widget).';
+$_['help_delivery_days_window'] = 'Numero di giorni mostrati per la scelta della data di consegna. Usa 0 per nascondere il selettore; le date disponibili dipendono comunque dal corriere.';
 $_['help_drop_off_delay'] = 'Giorni tra l\'ordine e l\'affidamento al corriere (0 = nessuno).';
 $_['text_view_list'] = 'Elenco';
 $_['text_view_map'] = 'Mappa';
 
 $_['entry_product_fields'] = 'Campi doganali del prodotto';
+$_['entry_customs_contents'] = 'Contenuto del pacco';
 $_['entry_customs_country'] = 'Paese di origine predefinito';
 $_['entry_customs_code'] = 'Codice HS predefinito';
 $_['text_product_customs'] = 'Dogana MyParcel';
 $_['entry_product_hs_code'] = 'Codice HS';
 $_['entry_product_country'] = 'Paese di origine';
 $_['help_product_fields'] = 'Aggiunge i campi codice HS e paese di origine all\'editor del prodotto per le dichiarazioni doganali delle spedizioni fuori dall\'UE.';
+$_['help_customs_contents'] = 'Descrizione predefinita del contenuto del pacco per le dichiarazioni doganali delle spedizioni fuori dall\'UE.';
 $_['help_customs_country'] = 'Paese di origine di fallback per la mappatura doganale quando il prodotto non ne ha uno. Se lasciato vuoto, viene usato il paese del negozio.';
 $_['help_customs_code'] = 'Codice HS (sistema armonizzato) di fallback per la mappatura doganale quando il prodotto non ne ha uno. Se lasciato vuoto, viene usato il valore predefinito MyParcel 000000.';
+$_['text_customs_contents_commercial_goods'] = 'Merci commerciali';
+$_['text_customs_contents_commercial_samples'] = 'Campioni commerciali';
+$_['text_customs_contents_documents'] = 'Documenti';
+$_['text_customs_contents_gifts'] = 'Regali';
+$_['text_customs_contents_return_shipment'] = 'Merci restituite';
 $_['text_none'] = '— nessuno —';
 
 $_['text_shipment_defaults'] = 'Valori predefiniti spedizione';
 $_['text_package_type_package'] = 'Pacco';
 $_['text_package_type_mailbox'] = 'Pacco per cassetta postale';
+$_['text_package_type_letter'] = 'Lettera non affrancata';
 $_['text_package_type_digital_stamp'] = 'Francobollo digitale';
+$_['text_package_type_pallet'] = 'Pallet';
 $_['text_package_type_package_small'] = 'Pacco piccolo';
 $_['text_package_type_envelope'] = 'Busta';
 
 // Help
 $_['help_environment'] = 'Usa l\'ambiente di accettazione solo per eseguire test nell\'ambiente di prova MyParcel. Il valore predefinito è produzione.';
-$_['help_default_package_type'] = 'Usato quando per un ordine non è stata scelta alcuna opzione di consegna nel checkout.';
+$_['help_default_package_type'] = 'Usato come tipo di pacco nel checkout e come valore di fallback quando per un ordine non è stata scelta alcuna opzione di consegna.';
 $_['help_label_format'] = 'A6 stampa un\'etichetta per pagina; A4 dispone le etichette su un foglio.';
 $_['help_label_position'] = 'Posizione sul foglio A4 (1-4). Ignorata per A6.';
 $_['help_fallback_dimensions'] = 'Lunghezza, larghezza e altezza in cm, usate solo quando i prodotti dell\'ordine non hanno dimensioni utilizzabili. Alcuni corrieri, come Poste Italiane e InPost, le richiedono.';
@@ -148,7 +156,7 @@ $_['error_not_exported'] = 'Questo ordine non è ancora stato esportato su MyPar
 $_['error_no_shipment_returned'] = 'MyParcel non ha restituito alcuna spedizione.';
 $_['error_export_failed'] = 'Impossibile esportare l\'ordine su MyParcel.';
 $_['error_export_phone_advice'] = 'Come risolvere: il corriere selezionato richiede un numero di telefono valido del destinatario. Inseriscilo nei dati cliente dell\'ordine e riprova.';
-$_['error_export_dimensions_advice'] = 'Come risolvere: il corriere selezionato richiede le dimensioni del pacco. Inserisci lunghezza, larghezza e altezza del prodotto oppure configura le dimensioni pacco di fallback nelle impostazioni MyParcel.';
+$_['error_export_dimensions_advice'] = 'Come risolvere: il corriere selezionato non accetta le dimensioni o il peso del pacco. Verifica lunghezza, larghezza, altezza e peso del prodotto — o le dimensioni pacco di fallback nelle impostazioni MyParcel — rispetto ai limiti del corriere.';
 $_['error_default_carrier_missing'] = 'Non è disponibile alcun corriere predefinito. Importa nuovamente i corrieri nelle impostazioni MyParcel oppure seleziona un corriere tramite le Opzioni di consegna prima dell\'esportazione.';
 $_['error_recipient_incomplete'] = 'Questo ordine non può essere esportato perché l\'indirizzo del destinatario è incompleto. Compila questi campi nell\'ordine: %s.';
 $_['text_recipient_field_country'] = 'paese';
@@ -174,6 +182,7 @@ $_['text_js_action_label'] = 'Etichetta';
 $_['text_js_action_track'] = 'Track & trace';
 $_['text_js_order_context'] = 'Ordine #{order_id} — {action}: {message}';
 $_['text_js_invalid_response'] = 'MyParcel ha restituito una risposta non valida.';
+$_['text_js_session_expired'] = 'La sessione di amministrazione è scaduta. Accedi di nuovo.';
 $_['text_js_export_failed'] = 'La richiesta di esportazione non è riuscita.';
 $_['text_js_export_done'] = 'Ordine esportato correttamente su MyParcel. Ora puoi scaricare l\'etichetta.';
 $_['text_js_export_again_done'] = 'Spedizione aggiuntiva creata correttamente. Ora puoi scaricare l\'etichetta della spedizione più recente o visualizzare tutte le spedizioni nei dettagli dell\'ordine.';
@@ -193,6 +202,11 @@ $_['text_ocmod_missing'] = 'La modifica OCMOD che mostra i pulsanti ordine MyPar
 $_['text_ocmod_disabled'] = 'La modifica OCMOD MyParcel è disabilitata. Abilitala in Estensioni → Modifiche, quindi fai clic su Aggiorna.';
 $_['text_ocmod_stale'] = 'La modifica OCMOD MyParcel non è ancora stata applicata ai template di amministrazione. Vai a Estensioni → Modifiche e fai clic su Aggiorna.';
 $_['button_open_modifications'] = 'Apri Modifiche';
+
+// Controllo codice postale (pagina impostazioni)
+$_['text_postcode_heading'] = 'Il codice postale non è obbligatorio nel checkout';
+$_['text_postcode_warning'] = 'OpenCart non richiede un codice postale per %s (%s); il checkout accetta quindi ordini che MyParcel non può spedire. Attiva "CAP obbligatorio" per i paesi verso cui spedisci.';
+$_['button_open_countries'] = 'Apri paesi';
 $_['error_opencart_version'] = 'MyParcel richiede OpenCart %s o versione successiva; questo negozio usa la versione %s.';
 
 // Event descriptions shown in OpenCart admin
