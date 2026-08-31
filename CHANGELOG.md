@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-beta.6](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.5...v1.0.0-beta.6) (2026-08-31)
+
+
+### :bug: Bug Fixes
+
+* v1 launch fixes for export correctness and checkout guidance ([d8efcd1](https://github.com/myparcelnl/opencart4/commit/d8efcd12110953066ea5c22c5c22b68dee943403))
+
 ## [1.0.0-beta.5](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.4...v1.0.0-beta.5) (2026-08-24)
 
 
