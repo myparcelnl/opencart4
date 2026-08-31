@@ -25,7 +25,7 @@ final class SettingKeys
 
     public const ENVIRONMENT = 'module_myparcel_environment';
 
-    /** Default package type (widget slug) for exports without a checkout selection. */
+    /** Package type used by checkout and as export fallback when checkout has no selection. */
     public const DEFAULT_PACKAGE_TYPE = 'module_myparcel_default_package_type';
 
     /** Default label format ('A4' or 'A6') and the A4 sheet position (1-4). */
@@ -50,6 +50,9 @@ final class SettingKeys
     public const CUSTOMS_DEFAULT_COUNTRY = 'module_myparcel_customs_default_country';
 
     public const CUSTOMS_DEFAULT_HS_CODE = 'module_myparcel_customs_default_hs_code';
+
+    /** Default contents category for customs declarations. */
+    public const CUSTOMS_CONTENTS_TYPE = 'module_myparcel_customs_contents_type';
 
     /** Per-carrier admin config (enabled state + selected services). */
     public const CARRIERS = 'module_myparcel_carriers';

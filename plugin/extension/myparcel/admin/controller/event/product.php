@@ -17,6 +17,13 @@ require_once DIR_EXTENSION . 'myparcel/bootstrap.php';
 class Product extends \Opencart\System\Engine\Controller
 {
     /**
+     * OpenCart's core language event copies every loaded language key into the
+     * data of any view rendered afterwards. Loading with a prefix keeps generic
+     * keys such as heading_title from overriding the host page's own text.
+     */
+    private const LANGUAGE_PREFIX = 'myparcel';
+
+    /**
      * Event `admin/view/catalog/product_form/before`: the customs fieldset for the Data tab.
      *
      * @param string $route OpenCart view route.
@@ -30,7 +37,7 @@ class Product extends \Opencart\System\Engine\Controller
             return;
         }
 
-        $this->load->language('extension/myparcel/module/myparcel');
+        $this->load->language('extension/myparcel/module/myparcel', self::LANGUAGE_PREFIX);
         $this->load->model('extension/myparcel/product/myparcel');
         $this->load->model('localisation/country');
 
@@ -47,13 +54,19 @@ class Product extends \Opencart\System\Engine\Controller
         }
 
         $data['myparcel_customs_fields'] = $this->load->view('extension/myparcel/event/product_customs_fields', [
-            'text_legend' => $this->language->get('text_product_customs'),
-            'text_hs_code' => $this->language->get('entry_product_hs_code'),
-            'text_country' => $this->language->get('entry_product_country'),
-            'text_none' => $this->language->get('text_none'),
+            'text_legend' => $this->text('text_product_customs'),
+            'text_hs_code' => $this->text('entry_product_hs_code'),
+            'text_country' => $this->text('entry_product_country'),
+            'text_none' => $this->text('text_none'),
             'hs_code' => $stored['hs_code'],
             'countries' => $countries,
         ]);
+    }
+
+    /** Read one of our own language keys through the collision-free prefix. */
+    private function text(string $key): string
+    {
+        return $this->language->get(self::LANGUAGE_PREFIX . '_' . $key);
     }
 
     /**

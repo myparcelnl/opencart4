@@ -149,10 +149,11 @@
     }).done(function (json) {
       // The widget needs an address; nothing else gates it (widget-first).
       if (!json || !json.address) {
-        hideWidget();
+        showAddressHint();
         return;
       }
 
+      hideAddressHint();
       container.hidden = false;
 
       // Only (re)render on first show or when the address actually changed.
@@ -397,6 +398,34 @@
     }
 
     state.rendered = false;
+  }
+
+  // No address yet (OpenCart only stores it after the shopper confirms the
+  // address form): keep the block visible with a hint instead of an empty gap.
+  function showAddressHint() {
+    var container = document.getElementById('myparcel-delivery-options-container');
+    var hint = document.getElementById('myparcel-address-hint');
+
+    if (!container || !hint || !hint.textContent) {
+      hideWidget();
+      return;
+    }
+
+    if (state.rendered) {
+      triggerWidgetEvent('myparcel_hide_delivery_options');
+    }
+
+    state.rendered = false;
+    hint.hidden = false;
+    container.hidden = false;
+  }
+
+  function hideAddressHint() {
+    var hint = document.getElementById('myparcel-address-hint');
+
+    if (hint) {
+      hint.hidden = true;
+    }
   }
 
   function setConfirmDisabled(disabled) {

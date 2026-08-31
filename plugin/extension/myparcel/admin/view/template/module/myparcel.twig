@@ -23,6 +23,13 @@
       <a href="{{ modifications_link }}" class="btn btn-warning btn-sm">{{ button_open_modifications }}</a>
     </div>
     {% endif %}
+    {% if postcode_warning %}
+    <div class="alert alert-warning">
+      <h5 class="alert-heading"><i class="fa-solid fa-triangle-exclamation"></i> {{ text_postcode_heading }}</h5>
+      <p>{{ postcode_warning|e }}</p>
+      <a href="{{ countries_link }}" class="btn btn-warning btn-sm">{{ button_open_countries }}</a>
+    </div>
+    {% endif %}
     <div class="card">
       <div class="card-header"><i class="fa-solid fa-pencil"></i> {{ text_edit }}</div>
       <div class="card-body">
@@ -219,16 +226,6 @@
               </div>
 
               <div class="row mb-3">
-                <label class="col-sm-2 col-form-label">{{ entry_show_delivery_date }}</label>
-                <div class="col-sm-10">
-                  <div class="form-check form-switch">
-                    <input type="hidden" name="module_myparcel_checkout[show_delivery_date]" value="0"/>
-                    <input type="checkbox" name="module_myparcel_checkout[show_delivery_date]" value="1" class="form-check-input"{% if checkout.showDeliveryDate %} checked{% endif %}/>
-                  </div>
-                </div>
-              </div>
-
-              <div class="row mb-3">
                 <label for="input-delivery-days-window" class="col-sm-2 col-form-label">{{ entry_delivery_days_window }}</label>
                 <div class="col-sm-10">
                   <input type="number" name="module_myparcel_checkout[delivery_days_window]" value="{{ checkout.deliveryDaysWindow }}" min="0" id="input-delivery-days-window" class="form-control" style="max-width: 320px;"/>
@@ -296,6 +293,18 @@
             </div>
 
             <div id="tab-customs" class="tab-pane">
+              <div class="row mb-3">
+                <label for="input-customs-contents" class="col-sm-2 col-form-label">{{ entry_customs_contents }}</label>
+                <div class="col-sm-10">
+                  <select name="module_myparcel_customs_contents_type" id="input-customs-contents" class="form-select" style="max-width: 320px;">
+                    {% for value, label in customs_contents_options %}
+                      <option value="{{ value }}"{% if module_myparcel_customs_contents_type == value %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                  <div class="form-text">{{ help_customs_contents }}</div>
+                </div>
+              </div>
+
               <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">{{ entry_product_fields }}</label>
                 <div class="col-sm-10">

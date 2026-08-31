@@ -12,6 +12,7 @@ use MyParcelNL\OpenCart\Core\Service\Carrier\CarrierCatalogService;
 use MyParcelNL\OpenCart\Core\Service\Carrier\CarrierPresenter;
 use MyParcelNL\OpenCart\Core\Service\Carrier\CarrierResolver;
 use MyParcelNL\OpenCart\Core\Service\ContractDefinitionsCache;
+use MyParcelNL\OpenCart\Core\Service\DeliveryOptions\PlatformResolver;
 use MyParcelNL\OpenCart\Core\Service\DeliveryOptions\CarrierSettingsBuilder;
 use MyParcelNL\OpenCart\Core\Service\DefaultCarrierService;
 use MyParcelNL\OpenCart\Core\Service\Order\OrderTable;
@@ -25,6 +26,7 @@ use MyParcelNL\OpenCart\Core\Settings\SettingKeys;
 use MyParcelNL\OpenCart\Core\Settings\Settings;
 use MyParcelNL\OpenCart\Core\Support\OpenCartCompatibility;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\ApiException as CoreApiException;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsCustomsShipmentType;
 use MyParcelNL\Sdk\Client\Generated\IamApi\ApiException as IamApiException;
 
 require_once DIR_EXTENSION . 'myparcel/bootstrap.php';
@@ -174,10 +176,14 @@ class Myparcel extends \Opencart\System\Engine\Controller
         $data['module_myparcel_customs_product_fields'] = $settings->productFieldsEnabled;
         $data['module_myparcel_customs_default_country'] = $settings->defaultCountryOfOrigin;
         $data['module_myparcel_customs_default_hs_code'] = $settings->defaultCustomsCode;
+        $data['module_myparcel_customs_contents_type'] = $settings->customsContentsType;
+        $data['customs_contents_options'] = $this->customsContentsOptions();
         $data['customs_country_options'] = $this->customsCountryOptions();
         $data['checkout'] = $settings->checkout;
         $data['capabilities_summary'] = $this->contractDefinitionsSummary();
         $data['carriers'] = $this->carrierRows();
+        $data['postcode_warning'] = $this->postcodeRequirementWarning();
+        $data['countries_link'] = $this->url->link('localisation/country', 'user_token=' . $this->session->data['user_token']);
 
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
@@ -232,6 +238,9 @@ class Myparcel extends \Opencart\System\Engine\Controller
                 ),
                 SettingKeys::CUSTOMS_DEFAULT_HS_CODE => (string) (
                     $this->request->post[SettingKeys::CUSTOMS_DEFAULT_HS_CODE] ?? ''
+                ),
+                SettingKeys::CUSTOMS_CONTENTS_TYPE => $this->normaliseCustomsContentsType(
+                    $this->request->post[SettingKeys::CUSTOMS_CONTENTS_TYPE] ?? null
                 ),
             ]);
 
@@ -522,6 +531,7 @@ class Myparcel extends \Opencart\System\Engine\Controller
             SettingKeys::CUSTOMS_PRODUCT_FIELDS => 0,
             SettingKeys::CUSTOMS_DEFAULT_COUNTRY => '',
             SettingKeys::CUSTOMS_DEFAULT_HS_CODE => Settings::DEFAULT_CUSTOMS_CODE,
+            SettingKeys::CUSTOMS_CONTENTS_TYPE => Settings::DEFAULT_CUSTOMS_CONTENTS_TYPE,
         ];
     }
 
@@ -597,6 +607,16 @@ class Myparcel extends \Opencart\System\Engine\Controller
         return Environment::normalize($environment);
     }
 
+    /** Resolve an untrusted posted customs contents value to an API-supported value. */
+    private function normaliseCustomsContentsType(mixed $contentsType): int
+    {
+        $value = (int) $contentsType;
+
+        return in_array($value, Settings::customsContentsTypes(), true)
+            ? $value
+            : Settings::DEFAULT_CUSTOMS_CONTENTS_TYPE;
+    }
+
     /**
      * Typed view of the saved module settings.
      */
@@ -633,6 +653,35 @@ class Myparcel extends \Opencart\System\Engine\Controller
         $this->load->model('localisation/country');
 
         return CountryOptions::fromOcCountries($this->model_localisation_country->getCountries());
+    }
+
+    /**
+     * Customs contents values from the generated API model, labelled for the admin UI.
+     *
+     * @return array<int, string> contents type => translated label
+     */
+    private function customsContentsOptions(): array
+    {
+        $languageKeys = [
+            ShipmentDefsCustomsShipmentType::COMMERCIAL_GOODS => 'text_customs_contents_commercial_goods',
+            ShipmentDefsCustomsShipmentType::COMMERCIAL_SAMPLE => 'text_customs_contents_commercial_samples',
+            ShipmentDefsCustomsShipmentType::DOCUMENTS => 'text_customs_contents_documents',
+            ShipmentDefsCustomsShipmentType::GIFT => 'text_customs_contents_gifts',
+            ShipmentDefsCustomsShipmentType::RETURNED_GOODS => 'text_customs_contents_return_shipment',
+        ];
+        $options = [];
+
+        foreach (Settings::customsContentsTypes() as $contentsType) {
+            $key = $languageKeys[$contentsType] ?? null;
+
+            if ($key === null) {
+                continue;
+            }
+
+            $options[$contentsType] = $this->language->get($key);
+        }
+
+        return $options;
     }
 
     /**
@@ -850,6 +899,43 @@ class Myparcel extends \Opencart\System\Engine\Controller
     private function contractDefinitionsSummary(): ?array
     {
         return $this->contractDefinitionsCache()->summary($this->contractDefinitions());
+    }
+
+    /**
+     * Warn when the account's home country does not require a postal code at
+     * checkout. OpenCart's required-asterisk is static template text while the
+     * actual validation follows the country's postcode_required flag, and stock
+     * OpenCart data ships NL, BE and IT with that flag off — orders without a
+     * postal code then pass the checkout and only fail at shipment export.
+     */
+    private function postcodeRequirementWarning(): string
+    {
+        $definitions = $this->contractDefinitions();
+
+        if ($definitions === null) {
+            return '';
+        }
+
+        $isoCode = PlatformResolver::homeCountry($definitions->platform);
+
+        $this->load->model('localisation/country');
+        $countries = $this->model_localisation_country->getCountries(['filter_iso_code_2' => $isoCode]);
+
+        foreach ($countries as $country) {
+            if (strtoupper((string) ($country['iso_code_2'] ?? '')) !== $isoCode) {
+                continue;
+            }
+
+            if (!(bool) ($country['postcode_required'] ?? true)) {
+                return sprintf(
+                    $this->language->get('text_postcode_warning'),
+                    (string) ($country['name'] ?? $isoCode),
+                    $isoCode
+                );
+            }
+        }
+
+        return '';
     }
 
     /**

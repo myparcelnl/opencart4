@@ -36,7 +36,6 @@ $_['tab_checkout'] = 'Checkout';
 $_['tab_customs'] = 'Douane';
 
 $_['entry_do_enabled'] = 'Bezorgopties';
-$_['entry_show_delivery_date'] = 'Bezorgdatum tonen';
 $_['entry_delivery_days_window'] = 'Bezorg-dagen-venster';
 $_['entry_drop_off_delay'] = 'Drop-off-vertraging';
 $_['entry_pickup_default_view'] = 'Afhaallocaties-weergave';
@@ -45,32 +44,41 @@ $_['entry_exclude_parcel_lockers'] = 'Parcel lockers uitsluiten';
 $_['entry_compact_view'] = 'Compacte weergave';
 $_['entry_pop_up_map'] = 'Afhaalkaart in pop-up';
 $_['help_do_enabled'] = 'Toon de MyParcel-bezorgopties-widget in de checkout.';
-$_['help_delivery_days_window'] = 'Aantal dagen waarbinnen de klant een bezorgdatum kan kiezen (0 = widget-default).';
+$_['help_delivery_days_window'] = 'Aantal dagen dat wordt getoond voor de bezorgdatumkeuze. Gebruik 0 om de datumkeuze te verbergen; beschikbare datums blijven afhankelijk van de vervoerder.';
 $_['help_drop_off_delay'] = 'Dagen tussen bestelling en overdracht aan de vervoerder (0 = geen).';
 $_['text_view_list'] = 'Lijst';
 $_['text_view_map'] = 'Kaart';
 
 $_['entry_product_fields'] = 'Douanevelden op product';
+$_['entry_customs_contents'] = 'Inhoud van het pakket';
 $_['entry_customs_country'] = 'Standaard land van oorsprong';
 $_['entry_customs_code'] = 'Standaard HS-code';
 $_['text_product_customs'] = 'MyParcel douane';
 $_['entry_product_hs_code'] = 'HS-code';
 $_['entry_product_country'] = 'Land van oorsprong';
 $_['help_product_fields'] = 'Voegt HS-code en land van oorsprong toe aan het productscherm voor douaneverklaringen bij zendingen buiten de EU.';
+$_['help_customs_contents'] = 'Standaard omschrijving van de pakketinhoud voor douaneverklaringen bij zendingen buiten de EU.';
 $_['help_customs_country'] = 'Terugval-land van oorsprong voor douane-mapping wanneer een product er geen heeft. Als dit leeg blijft, wordt het land van de shop gebruikt.';
 $_['help_customs_code'] = 'Terugval-HS-code (geharmoniseerd systeem) voor douane-mapping wanneer een product er geen heeft. Als dit leeg blijft, wordt de MyParcel-standaard 000000 gebruikt.';
+$_['text_customs_contents_commercial_goods'] = 'Commerciële goederen';
+$_['text_customs_contents_commercial_samples'] = 'Commerciële monsters';
+$_['text_customs_contents_documents'] = 'Documenten';
+$_['text_customs_contents_gifts'] = 'Geschenken';
+$_['text_customs_contents_return_shipment'] = 'Retourgoederen';
 $_['text_none'] = '— geen —';
 
 $_['text_shipment_defaults'] = 'Verzend-standaarden';
 $_['text_package_type_package'] = 'Pakket';
 $_['text_package_type_mailbox'] = 'Brievenbuspakje';
+$_['text_package_type_letter'] = 'Ongefrankeerde brief';
 $_['text_package_type_digital_stamp'] = 'Digitale postzegel';
+$_['text_package_type_pallet'] = 'Pallet';
 $_['text_package_type_package_small'] = 'Klein pakket';
 $_['text_package_type_envelope'] = 'Envelop';
 
 // Help
 $_['help_environment'] = 'Zet alleen op acceptatie om tegen de testomgeving van MyParcel te testen. Standaard is productie.';
-$_['help_default_package_type'] = 'Gebruikt wanneer een order geen bezorgoptie uit de checkout heeft.';
+$_['help_default_package_type'] = 'Wordt gebruikt als pakkettype in de checkout en als terugvalwaarde wanneer een order geen gekozen bezorgoptie heeft.';
 $_['help_label_format'] = 'A6 print één label per pagina; A4 plaatst labels op een vel.';
 $_['help_label_position'] = 'Positie op het A4-vel (1-4). Niet van toepassing bij A6.';
 $_['help_fallback_dimensions'] = 'Lengte, breedte en hoogte in cm, alleen gebruikt wanneer de producten van een order geen bruikbare afmetingen hebben. Sommige carriers (bijv. Poste Italiane, InPost) vereisen ze.';
@@ -148,7 +156,7 @@ $_['error_not_exported'] = 'Deze order is nog niet naar MyParcel geëxporteerd.'
 $_['error_no_shipment_returned'] = 'MyParcel gaf geen zending terug.';
 $_['error_export_failed'] = 'Kon de order niet naar MyParcel exporteren.';
 $_['error_export_phone_advice'] = 'Oplossing: de gekozen vervoerder vereist een geldig telefoonnummer van de ontvanger. Vul dit in bij de klantgegevens van de order en probeer opnieuw.';
-$_['error_export_dimensions_advice'] = 'Oplossing: de gekozen vervoerder vereist pakketafmetingen. Vul lengte, breedte en hoogte in bij het product of stel een terugval-pakketgrootte in bij de MyParcel-instellingen.';
+$_['error_export_dimensions_advice'] = 'Oplossing: de gekozen vervoerder accepteert de afmetingen of het gewicht van het pakket niet. Controleer lengte, breedte, hoogte en gewicht van het product — of de terugval-pakketgrootte in de MyParcel-instellingen — tegen de limieten van de vervoerder.';
 $_['error_default_carrier_missing'] = 'Er is geen standaardvervoerder beschikbaar. Importeer de vervoerders opnieuw in de MyParcel-instellingen, of kies vóór het exporteren een vervoerder via Delivery Options.';
 $_['error_recipient_incomplete'] = 'Deze order kan niet worden geëxporteerd omdat het adres van de ontvanger niet compleet is. Vul deze velden in bij de order: %s.';
 $_['text_recipient_field_country'] = 'land';
@@ -174,6 +182,7 @@ $_['text_js_action_label'] = 'Label';
 $_['text_js_action_track'] = 'Track & trace';
 $_['text_js_order_context'] = 'Bestelling #{order_id} — {action}: {message}';
 $_['text_js_invalid_response'] = 'MyParcel gaf een ongeldig antwoord terug.';
+$_['text_js_session_expired'] = 'Je beheersessie is verlopen. Log opnieuw in.';
 $_['text_js_export_failed'] = 'Het exportverzoek is mislukt.';
 $_['text_js_export_done'] = 'Order succesvol geëxporteerd naar MyParcel. Je kunt nu het label downloaden.';
 $_['text_js_export_again_done'] = 'Extra zending succesvol aangemaakt. Je kunt nu het label van de nieuwste zending downloaden of alle zendingen bekijken via de orderdetails.';
@@ -193,6 +202,11 @@ $_['text_ocmod_missing'] = 'De OCMOD-modificatie die de MyParcel-orderknoppen, z
 $_['text_ocmod_disabled'] = 'De MyParcel OCMOD-modificatie staat uit. Zet hem aan onder Extensies → Modifications en klik daarna op Refresh.';
 $_['text_ocmod_stale'] = 'De MyParcel OCMOD-modificatie is nog niet toegepast op de admin-templates. Ga naar Extensies → Modifications en klik op Refresh.';
 $_['button_open_modifications'] = 'Modifications openen';
+
+// Postcode-controle (instellingenpagina)
+$_['text_postcode_heading'] = 'Postcode is niet verplicht in de checkout';
+$_['text_postcode_warning'] = 'OpenCart vereist geen postcode voor %s (%s); de checkout accepteert daardoor orders die MyParcel niet kan verzenden. Zet "Postcode verplicht" aan voor de landen waarnaar je verzendt.';
+$_['button_open_countries'] = 'Landen openen';
 $_['error_opencart_version'] = 'MyParcel vereist OpenCart %s of nieuwer; deze shop draait %s.';
 
 // Eventbeschrijvingen in de OpenCart-admin

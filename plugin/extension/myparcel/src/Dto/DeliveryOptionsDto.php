@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace MyParcelNL\OpenCart\Core\Dto;
 
+use DateTimeImmutable;
+use Exception;
+
 /**
  * The Delivery Options a shopper picked at checkout, as stored on the order.
  * Holds the widget slugs ('standard', 'mailbox', ...); the mapper translates
@@ -19,6 +22,7 @@ final class DeliveryOptionsDto
      *
      * @param array<string, mixed> $shipmentOptions raw shipmentOptions payload from the widget
      * @param array<string, mixed>|null $pickup pickupLocation payload normalised to SDK snake_case keys
+     * @param string|null $deliveryDate delivery date normalised to the shipment API date-time format
      */
     public function __construct(
         public ?string $carrier = null,
@@ -26,6 +30,7 @@ final class DeliveryOptionsDto
         public ?string $packageType = null,
         public array $shipmentOptions = [],
         public ?array $pickup = null,
+        public ?string $deliveryDate = null,
     ) {
     }
 
@@ -45,6 +50,7 @@ final class DeliveryOptionsDto
             packageType: self::string($json, 'packageType', 'package_type'),
             shipmentOptions: $options,
             pickup: self::pickupLocation($json),
+            deliveryDate: self::deliveryDate($json),
         );
     }
 
@@ -77,17 +83,48 @@ final class DeliveryOptionsDto
         $normalised = [
             'cc' => self::string($raw, 'cc'),
             'city' => self::string($raw, 'city'),
-            'type' => self::string($raw, 'type'),
             'number' => self::string($raw, 'number'),
             'street' => self::string($raw, 'street'),
             'postal_code' => self::string($raw, 'postal_code', 'postalCode'),
             'location_code' => self::string($raw, 'location_code', 'locationCode'),
             'location_name' => self::string($raw, 'location_name', 'locationName'),
             'number_suffix' => self::string($raw, 'number_suffix', 'numberSuffix'),
+            'box_number' => self::string($raw, 'box_number', 'boxNumber'),
+            'region' => self::string($raw, 'region'),
+            'state' => self::string($raw, 'state'),
             'retail_network_id' => self::string($raw, 'retail_network_id', 'retailNetworkId'),
         ];
 
         return array_filter($normalised, static fn ($value): bool => $value !== null && $value !== '');
+    }
+
+    /**
+     * Normalise the widget's date (`Y-m-d`) and legacy ISO 8601 variants to the
+     * date-time format required by the shipment API.
+     *
+     * @param array<string, mixed> $json
+     */
+    private static function deliveryDate(array $json): ?string
+    {
+        $raw = self::string($json, 'date', 'deliveryDate', 'delivery_date');
+
+        if ($raw === null || preg_match('/^\d{4}-\d{2}-\d{2}/', $raw) !== 1) {
+            return null;
+        }
+
+        try {
+            $date = new DateTimeImmutable($raw);
+        } catch (Exception) {
+            return null;
+        }
+
+        $parseErrors = DateTimeImmutable::getLastErrors();
+
+        if ($parseErrors !== false && ($parseErrors['warning_count'] > 0 || $parseErrors['error_count'] > 0)) {
+            return null;
+        }
+
+        return $date->format('Y-m-d H:i:s');
     }
 
     /**

@@ -12,29 +12,19 @@ final class ExportErrorMessageEnhancer
     /** @var string[] */
     private const PHONE_MARKERS = ['phone', 'telephone', 'telefoon', 'telefono'];
 
-    /** @var string[] */
+    /**
+     * A physical-properties marker alone is enough for the dimensions advice: the
+     * API often reports only the violated range (e.g. "moet tussen 15 en 180
+     * liggen") without naming the dimension, so requiring a dimension word too
+     * would suppress the advice exactly when the merchant needs it.
+     *
+     * @var string[]
+     */
     private const PHYSICAL_PROPERTIES_MARKERS = [
         'physical properties',
         'physical_properties',
         'fysieke eigenschappen',
         'proprietà fisiche',
-    ];
-
-    /** @var string[] */
-    private const DIMENSION_MARKERS = [
-        'length',
-        'width',
-        'height',
-        'dimension',
-        'lengte',
-        'breedte',
-        'hoogte',
-        'afmeting',
-        'lunghezza',
-        'larghezza',
-        'altezza',
-        'dimensione',
-        'dimensioni',
     ];
 
     /**
@@ -50,10 +40,7 @@ final class ExportErrorMessageEnhancer
             $advice[] = $phoneAdvice;
         }
 
-        if (
-            $this->containsAny($normalized, self::PHYSICAL_PROPERTIES_MARKERS)
-            && $this->containsAny($normalized, self::DIMENSION_MARKERS)
-        ) {
+        if ($this->containsAny($normalized, self::PHYSICAL_PROPERTIES_MARKERS)) {
             $advice[] = $dimensionsAdvice;
         }
 

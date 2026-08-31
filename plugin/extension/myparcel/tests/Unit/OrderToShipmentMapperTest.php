@@ -98,6 +98,7 @@ class OrderToShipmentMapperTest extends TestCase
     public function testPackageTypeValueResolvesSlugToSdkValue(): void
     {
         self::assertSame(RefShipmentPackageTypeV2::MAILBOX, OrderToShipmentMapper::packageTypeValue('mailbox'));
+        self::assertSame(RefShipmentPackageTypeV2::UNFRANKED, OrderToShipmentMapper::packageTypeValue('letter'));
         self::assertSame(RefShipmentPackageTypeV2::SMALL_PACKAGE, OrderToShipmentMapper::packageTypeValue('package_small'));
         self::assertSame(RefShipmentPackageTypeV2::PALLET, OrderToShipmentMapper::packageTypeValue('pallet'));
         self::assertSame(RefShipmentPackageTypeV2::PACKAGE, OrderToShipmentMapper::packageTypeValue('does_not_exist'));
@@ -108,8 +109,10 @@ class OrderToShipmentMapperTest extends TestCase
         $slugs = OrderToShipmentMapper::packageTypeSlugs();
 
         self::assertContains('package_small', $slugs);
+        self::assertContains('letter', $slugs);
         self::assertContains('pallet', $slugs);
         self::assertNotContains('small_package', $slugs);
+        self::assertNotContains('unfranked', $slugs);
     }
 
     public function testConventionBasedDeliveryTypeUsesGeneratedSdkConstant(): void
@@ -156,6 +159,7 @@ class OrderToShipmentMapperTest extends TestCase
     {
         $deliveryOptions = DeliveryOptionsDto::fromJson([
             'carrier'         => 'postnl',
+            'date'            => '2026-09-02',
             'deliveryType'    => 'evening',
             'packageType'     => 'package',
             'shipmentOptions' => [
@@ -165,6 +169,7 @@ class OrderToShipmentMapperTest extends TestCase
         ]);
 
         self::assertSame('postnl', $deliveryOptions->carrier);
+        self::assertSame('2026-09-02 00:00:00', $deliveryOptions->deliveryDate);
         self::assertSame('evening', $deliveryOptions->deliveryType);
         self::assertTrue($deliveryOptions->shipmentOption('signature'));
         self::assertFalse($deliveryOptions->shipmentOption('only_recipient'));
@@ -188,6 +193,19 @@ class OrderToShipmentMapperTest extends TestCase
         self::assertSame('1012AA', $deliveryOptions->pickup['postal_code'] ?? null);
         self::assertSame('176193', $deliveryOptions->pickup['location_code'] ?? null);
         self::assertSame('Service Point Amsterdam CS', $deliveryOptions->pickup['location_name'] ?? null);
+    }
+
+    public function testFromJsonAcceptsLegacyDeliveryDateAndRejectsInvalidDate(): void
+    {
+        $legacy = DeliveryOptionsDto::fromJson([
+            'deliveryDate' => '2026-09-02T14:30:00+02:00',
+        ]);
+        $invalid = DeliveryOptionsDto::fromJson([
+            'date' => '2026-02-30',
+        ]);
+
+        self::assertSame('2026-09-02 14:30:00', $legacy->deliveryDate);
+        self::assertNull($invalid->deliveryDate);
     }
 
     public function testThrowsWhenRecipientIsIncomplete(): void
@@ -247,11 +265,13 @@ class OrderToShipmentMapperTest extends TestCase
             ],
         );
 
-        $dropOff = $this->mapper()->mapOrderToShipment($this->order(), $deliveryOptions)->getDropOffPoint();
+        $shipment = $this->mapper()->mapOrderToShipment($this->order(), $deliveryOptions);
+        $pickup = $shipment->getPickup();
 
-        self::assertNotNull($dropOff);
-        self::assertSame('ABC123', $dropOff->getLocationCode());
-        self::assertSame('Hoofddorp', $dropOff->getCity());
+        self::assertNotNull($pickup);
+        self::assertNull($shipment->getDropOffPoint());
+        self::assertSame('ABC123', $pickup->getLocationCode());
+        self::assertSame('Hoofddorp', $pickup->getCity());
     }
 
     public function testIncompletePickupIsSkipped(): void
@@ -274,7 +294,7 @@ class OrderToShipmentMapperTest extends TestCase
 
         $shipment = $mapper->mapOrderToShipment($this->order(), $deliveryOptions);
 
-        self::assertNull($shipment->getDropOffPoint());
+        self::assertNull($shipment->getPickup());
         self::assertSame(['Incomplete Delivery Options pickup location; ignoring pickup data.'], $messages);
     }
 
@@ -299,6 +319,27 @@ class OrderToShipmentMapperTest extends TestCase
 
         self::assertSame('jan@example.com', $recipient->getEmail());
         self::assertSame('+31612345678', $recipient->getPhone());
+    }
+
+    public function testMapsRecipientNumberSuffix(): void
+    {
+        $order = new OrderDto(
+            new RecipientDto(
+                cc: 'NL',
+                person: 'Jan Jansen',
+                postalCode: '1234AB',
+                city: 'Amsterdam',
+                street: 'Hoofdstraat',
+                number: '12',
+                numberSuffix: 'A',
+            ),
+            [new OrderItemDto('T-shirt', 1, 200, 15.00)],
+            'oc-number-suffix',
+        );
+
+        $recipient = $this->mapper()->mapOrderToShipment($order)->getRecipient();
+
+        self::assertSame('A', $recipient->getNumberSuffix());
     }
 
     public function testMappedShipmentSerializesAsCreateRequest(): void
@@ -333,6 +374,7 @@ class OrderToShipmentMapperTest extends TestCase
                 'number'        => '10',
                 'location_code' => 'ABC123',
             ],
+            deliveryDate: $futureDeliveryDate = date('Y-m-d 00:00:00', strtotime('+5 days')),
         );
         $shipment = $this->mapper()->mapOrderToShipment($order, $deliveryOptions);
         $data = new ShipmentPostShipmentsRequestV11Data();
@@ -350,16 +392,40 @@ class OrderToShipmentMapperTest extends TestCase
 
         self::assertSame('jan@example.com', $serializedShipment['recipient']['email']);
         self::assertSame('Kruisweg', $serializedShipment['recipient']['street']);
-        self::assertSame('ABC123', $serializedShipment['drop_off_point']['location_code']);
+        self::assertSame('ABC123', $serializedShipment['pickup']['location_code']);
+        self::assertArrayNotHasKey('drop_off_point', $serializedShipment);
         self::assertSame(750, $serializedShipment['physical_properties']['weight']);
         self::assertSame(Carrier::toId(RefTypesCarrierV2::UPS_STANDARD), $serializedShipment['carrier']);
         self::assertSame(PackageType::toId(RefShipmentPackageTypeV2::PACKAGE), $serializedShipment['options']['package_type']);
         self::assertSame(1, $serializedShipment['options']['signature']);
         self::assertSame(0, $serializedShipment['options']['only_recipient']);
+        self::assertSame($futureDeliveryDate, $serializedShipment['options']['delivery_date']);
         self::assertSame(
             (new DeliveryTypeApiMapping())->enumToId(RefTypesDeliveryTypeV2::PICKUP),
             $serializedShipment['options']['delivery_type']
         );
+    }
+
+    public function testDropsAPassedDeliveryDateInsteadOfFailingTheExport(): void
+    {
+        $diagnostics = [];
+        $mapper = new OrderToShipmentMapper(
+            RefTypesCarrierV2::POSTNL,
+            fallbackReporter: static function (string $message) use (&$diagnostics): void {
+                $diagnostics[] = $message;
+            }
+        );
+
+        $stale = new DeliveryOptionsDto(deliveryDate: date('Y-m-d 00:00:00', strtotime('-1 day')));
+        $shipment = $mapper->mapOrderToShipment($this->order(), $stale);
+
+        self::assertNull($shipment->getOptions()->getDeliveryDate());
+        self::assertNotEmpty($diagnostics);
+
+        $today = new DeliveryOptionsDto(deliveryDate: date('Y-m-d 00:00:00'));
+        $shipment = $mapper->mapOrderToShipment($this->order(), $today);
+
+        self::assertSame(date('Y-m-d 00:00:00'), $shipment->getOptions()->getDeliveryDate());
     }
 
     public function testRestOfWorldShipmentSerializesCustomsDeclaration(): void

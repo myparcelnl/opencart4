@@ -6,7 +6,9 @@ namespace MyParcelNL\OpenCart\Core\Settings;
 
 use MyParcelNL\OpenCart\Core\Enum\Environment;
 use MyParcelNL\OpenCart\Core\Service\DeliveryOptions\CarrierSettingsBuilder;
+use MyParcelNL\OpenCart\Core\Service\DeliveryOptions\PackageTypeMapping;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentLabelPrintingPosition;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsCustomsShipmentType;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentParametersPaperSize;
 
 /**
@@ -23,6 +25,9 @@ final class Settings
 
     /** Generic customs classification used by the other MyParcel plugins. */
     public const DEFAULT_CUSTOMS_CODE = '000000';
+
+    /** Commercial goods is the PDK-compatible default for customs declarations. */
+    public const DEFAULT_CUSTOMS_CONTENTS_TYPE = ShipmentDefsCustomsShipmentType::COMMERCIAL_GOODS;
 
     public bool $enabled;
 
@@ -51,6 +56,8 @@ final class Settings
 
     public string $defaultCustomsCode;
 
+    public int $customsContentsType;
+
     public CheckoutSettings $checkout;
 
     /** Require callers to use a factory that validates the stored values. */
@@ -73,7 +80,7 @@ final class Settings
 
         $packageType = trim((string) ($raw[SettingKeys::DEFAULT_PACKAGE_TYPE] ?? ''));
         $settings->defaultPackageType = $packageType !== ''
-            ? $packageType
+            ? (PackageTypeMapping::toWidget($packageType) ?? strtolower($packageType))
             : CarrierSettingsBuilder::DEFAULT_PACKAGE_TYPE;
 
         $format = strtoupper(trim((string) ($raw[SettingKeys::LABEL_FORMAT] ?? '')));
@@ -97,6 +104,10 @@ final class Settings
         $settings->defaultCustomsCode = $customsCode !== ''
             ? $customsCode
             : self::DEFAULT_CUSTOMS_CODE;
+        $contentsType = (int) ($raw[SettingKeys::CUSTOMS_CONTENTS_TYPE] ?? self::DEFAULT_CUSTOMS_CONTENTS_TYPE);
+        $settings->customsContentsType = in_array($contentsType, self::customsContentsTypes(), true)
+            ? $contentsType
+            : self::DEFAULT_CUSTOMS_CONTENTS_TYPE;
 
         $checkout = $raw[SettingKeys::CHECKOUT] ?? null;
         $settings->checkout = CheckoutSettings::fromArray(is_array($checkout) ? $checkout : []);
@@ -125,6 +136,7 @@ final class Settings
             SettingKeys::CUSTOMS_PRODUCT_FIELDS => $config->get(SettingKeys::CUSTOMS_PRODUCT_FIELDS),
             SettingKeys::CUSTOMS_DEFAULT_COUNTRY => $config->get(SettingKeys::CUSTOMS_DEFAULT_COUNTRY),
             SettingKeys::CUSTOMS_DEFAULT_HS_CODE => $config->get(SettingKeys::CUSTOMS_DEFAULT_HS_CODE),
+            SettingKeys::CUSTOMS_CONTENTS_TYPE => $config->get(SettingKeys::CUSTOMS_CONTENTS_TYPE),
             SettingKeys::CHECKOUT => $config->get(SettingKeys::CHECKOUT),
         ]);
     }
@@ -147,6 +159,16 @@ final class Settings
     public static function labelPositions(): array
     {
         return RefShipmentLabelPrintingPosition::getAllowableEnumValues();
+    }
+
+    /**
+     * The customs contents categories accepted by the generated shipment model.
+     *
+     * @return list<int>
+     */
+    public static function customsContentsTypes(): array
+    {
+        return array_map('intval', ShipmentDefsCustomsShipmentType::getAllowableEnumValues());
     }
 
     /** True when all three fallback dimensions are set, i.e. a usable default box. */

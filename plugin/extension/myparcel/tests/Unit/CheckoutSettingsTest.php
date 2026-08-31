@@ -14,7 +14,6 @@ class CheckoutSettingsTest extends TestCase
         $checkout = CheckoutSettings::fromArray([]);
 
         self::assertTrue($checkout->deliveryOptionsEnabled);
-        self::assertFalse($checkout->showDeliveryDate);
         self::assertSame(0, $checkout->deliveryDaysWindow);
         self::assertSame(0, $checkout->dropOffDelay);
         self::assertSame(CheckoutSettings::VIEW_LIST, $checkout->pickupLocationsDefaultView);
@@ -25,14 +24,12 @@ class CheckoutSettingsTest extends TestCase
     {
         $checkout = CheckoutSettings::fromArray([
             'delivery_options_enabled' => '0',
-            'show_delivery_date' => '1',
             'delivery_days_window' => '5',
             'drop_off_delay' => '2',
             'pickup_locations_default_view' => 'map',
         ]);
 
         self::assertFalse($checkout->deliveryOptionsEnabled);
-        self::assertTrue($checkout->showDeliveryDate);
         self::assertSame(5, $checkout->deliveryDaysWindow);
         self::assertSame(2, $checkout->dropOffDelay);
         self::assertSame(CheckoutSettings::VIEW_MAP, $checkout->pickupLocationsDefaultView);
@@ -51,7 +48,8 @@ class CheckoutSettingsTest extends TestCase
         $config = CheckoutSettings::fromArray([])->toWidgetConfig();
 
         self::assertArrayNotHasKey('deliveryOptionsEnabled', $config);
-        self::assertArrayHasKey('showDeliveryDate', $config);
+        self::assertArrayNotHasKey('showDeliveryDate', $config);
+        self::assertArrayHasKey('deliveryDaysWindow', $config);
         self::assertArrayHasKey('popUpMap', $config);
     }
 

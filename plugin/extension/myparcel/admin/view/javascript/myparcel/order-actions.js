@@ -167,8 +167,28 @@
             });
         }
 
+        if (response.redirected && response.url.indexOf('route=common/login') !== -1) {
+            return Promise.resolve(t('session_expired'));
+        }
+
         return response.text().then(function (text) {
-            return text || t('invalid_response');
+            var isLoginPage = /<form[^>]+id=["']form-login["']/i.test(text)
+                || text.indexOf('route=common/login') !== -1;
+            var isHtml = contentType.indexOf('text/html') !== -1
+                || /^\s*<!doctype html/i.test(text)
+                || /^\s*</.test(text);
+
+            if (isLoginPage) {
+                return t('session_expired');
+            }
+
+            // Never render an HTML error page inside the admin alert. Besides
+            // being unreadable, it may contain a fresh login token or markup.
+            if (isHtml) {
+                return t('invalid_response');
+            }
+
+            return text.trim() || t('invalid_response');
         });
     }
 

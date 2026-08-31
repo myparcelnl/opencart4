@@ -38,4 +38,15 @@ final class OrderActionPresentationTest extends TestCase
             $controller
         );
     }
+
+    public function testHtmlErrorResponsesAreReplacedWithTranslatedMessages(): void
+    {
+        $root = dirname(__DIR__, 2);
+        $script = (string) file_get_contents($root . '/admin/view/javascript/myparcel/order-actions.js');
+
+        self::assertStringContainsString("t('session_expired')", $script);
+        self::assertStringContainsString("contentType.indexOf('text/html')", $script);
+        self::assertStringContainsString("return text.trim() || t('invalid_response');", $script);
+        self::assertStringNotContainsString("return text || t('invalid_response');", $script);
+    }
 }

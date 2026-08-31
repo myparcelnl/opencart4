@@ -36,7 +36,6 @@ $_['tab_checkout'] = 'Checkout';
 $_['tab_customs'] = 'Customs';
 
 $_['entry_do_enabled'] = 'Delivery options';
-$_['entry_show_delivery_date'] = 'Show delivery date';
 $_['entry_delivery_days_window'] = 'Delivery days window';
 $_['entry_drop_off_delay'] = 'Drop-off delay';
 $_['entry_pickup_default_view'] = 'Pickup locations view';
@@ -45,32 +44,41 @@ $_['entry_exclude_parcel_lockers'] = 'Exclude parcel lockers';
 $_['entry_compact_view'] = 'Compact view';
 $_['entry_pop_up_map'] = 'Pickup map in pop-up';
 $_['help_do_enabled'] = 'Show the MyParcel delivery options widget in the checkout.';
-$_['help_delivery_days_window'] = 'Number of days the customer can choose a delivery date within (0 = widget default).';
+$_['help_delivery_days_window'] = 'Number of days shown for delivery-date selection. Use 0 to hide the date selector; available dates still depend on the carrier.';
 $_['help_drop_off_delay'] = 'Days between order and hand-off to the carrier (0 = none).';
 $_['text_view_list'] = 'List';
 $_['text_view_map'] = 'Map';
 
 $_['entry_product_fields'] = 'Product customs fields';
+$_['entry_customs_contents'] = 'Package contents';
 $_['entry_customs_country'] = 'Default country of origin';
 $_['entry_customs_code'] = 'Default HS code';
 $_['text_product_customs'] = 'MyParcel customs';
 $_['entry_product_hs_code'] = 'HS code';
 $_['entry_product_country'] = 'Country of origin';
 $_['help_product_fields'] = 'Adds HS code and country of origin fields to the product editor for customs declarations on shipments outside the EU.';
+$_['help_customs_contents'] = 'Default description of the package contents for customs declarations on shipments outside the EU.';
 $_['help_customs_country'] = 'Fallback country of origin for customs mapping when a product has none. The store country is used when this is left empty.';
 $_['help_customs_code'] = 'Fallback HS (harmonised system) code for customs mapping when a product has none. The MyParcel default 000000 is used when this is left empty.';
+$_['text_customs_contents_commercial_goods'] = 'Commercial goods';
+$_['text_customs_contents_commercial_samples'] = 'Commercial samples';
+$_['text_customs_contents_documents'] = 'Documents';
+$_['text_customs_contents_gifts'] = 'Gifts';
+$_['text_customs_contents_return_shipment'] = 'Returned goods';
 $_['text_none'] = '— none —';
 
 $_['text_shipment_defaults'] = 'Shipment defaults';
 $_['text_package_type_package'] = 'Package';
 $_['text_package_type_mailbox'] = 'Mailbox package';
+$_['text_package_type_letter'] = 'Unfranked letter';
 $_['text_package_type_digital_stamp'] = 'Digital stamp';
+$_['text_package_type_pallet'] = 'Pallet';
 $_['text_package_type_package_small'] = 'Small package';
 $_['text_package_type_envelope'] = 'Envelope';
 
 // Help
 $_['help_environment'] = 'Use acceptance only to test against the MyParcel test environment. Default is production.';
-$_['help_default_package_type'] = 'Used when an order has no delivery option chosen at checkout.';
+$_['help_default_package_type'] = 'Used as the package type in checkout and as the fallback when an order has no delivery option chosen.';
 $_['help_label_format'] = 'A6 prints one label per page; A4 places labels on a sheet.';
 $_['help_label_position'] = 'Position on the A4 sheet (1-4). Ignored for A6.';
 $_['help_fallback_dimensions'] = 'Length, width and height in cm, used only when the order\'s products have no usable dimensions. Some carriers (e.g. Poste Italiane, InPost) require them.';
@@ -148,7 +156,7 @@ $_['error_not_exported'] = 'This order has not been exported to MyParcel yet.';
 $_['error_no_shipment_returned'] = 'MyParcel returned no shipment.';
 $_['error_export_failed'] = 'Could not export the order to MyParcel.';
 $_['error_export_phone_advice'] = 'How to fix: the selected carrier requires a valid recipient phone number. Add it under the order\'s customer details and try again.';
-$_['error_export_dimensions_advice'] = 'How to fix: the selected carrier requires parcel dimensions. Enter length, width and height for the product or configure a fallback package size in the MyParcel settings.';
+$_['error_export_dimensions_advice'] = 'How to fix: the selected carrier could not accept the parcel\'s dimensions or weight. Check the product\'s length, width, height and weight — or the fallback package size in the MyParcel settings — against the carrier\'s limits.';
 $_['error_default_carrier_missing'] = 'No default carrier is available. Re-import the carriers in the MyParcel settings, or select a carrier through Delivery Options before exporting.';
 $_['error_recipient_incomplete'] = 'This order cannot be exported because the recipient address is incomplete. Complete these fields in the order: %s.';
 $_['text_recipient_field_country'] = 'country';
@@ -174,6 +182,7 @@ $_['text_js_action_label'] = 'Label';
 $_['text_js_action_track'] = 'Track & trace';
 $_['text_js_order_context'] = 'Order #{order_id} — {action}: {message}';
 $_['text_js_invalid_response'] = 'MyParcel returned an invalid response.';
+$_['text_js_session_expired'] = 'Your admin session has expired. Please log in again.';
 $_['text_js_export_failed'] = 'The export request failed.';
 $_['text_js_export_done'] = 'Order exported successfully to MyParcel. You can now download the label.';
 $_['text_js_export_again_done'] = 'Additional shipment created successfully. You can now download the label for the newest shipment or view every shipment in the order details.';
@@ -193,6 +202,11 @@ $_['text_ocmod_missing'] = 'The OCMOD modification that renders the MyParcel ord
 $_['text_ocmod_disabled'] = 'The MyParcel OCMOD modification is disabled. Enable it under Extensions → Modifications, then click Refresh.';
 $_['text_ocmod_stale'] = 'The MyParcel OCMOD modification has not been applied to the admin templates yet. Go to Extensions → Modifications and click Refresh.';
 $_['button_open_modifications'] = 'Open Modifications';
+
+// Postal-code health check (settings page)
+$_['text_postcode_heading'] = 'Postal code is not required at checkout';
+$_['text_postcode_warning'] = 'OpenCart does not require a postal code for %s (%s), so the checkout accepts orders MyParcel cannot ship. Enable "Postcode Required" for the countries you ship to.';
+$_['button_open_countries'] = 'Open Countries';
 $_['error_opencart_version'] = 'MyParcel requires OpenCart %s or newer; this store runs %s.';
 
 // Event descriptions shown in OpenCart admin
