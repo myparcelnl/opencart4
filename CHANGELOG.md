@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-beta.8](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.7...v1.0.0-beta.8) (2026-09-02)
+
+
+### :bug: Bug Fixes
+
+* export international orders whose street line has no trailing house number ([1f41a4e](https://github.com/myparcelnl/opencart4/commit/1f41a4e18ac665de95e346746669ee337b6038fa))
+
 ## [1.0.0-beta.7](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.6...v1.0.0-beta.7) (2026-09-02)
 
 
