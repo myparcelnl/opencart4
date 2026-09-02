@@ -21,7 +21,6 @@ final class CustomsDeclarationFromOrder
 {
     public const DEFAULT_CUSTOMS_CODE = Settings::DEFAULT_CUSTOMS_CODE;
 
-    private const CURRENCY_EUR = 'EUR';
     private const DESCRIPTION_MAX_LENGTH = 50;
     private const MAX_ITEMS = 100;
     private const MAX_QUANTITY = 99999;
@@ -96,12 +95,6 @@ final class CustomsDeclarationFromOrder
             throw CustomsDeclarationException::invalidQuantity($description);
         }
 
-        $currency = strtoupper(trim($item->currency));
-
-        if ($currency !== self::CURRENCY_EUR) {
-            throw CustomsDeclarationException::unsupportedCurrency($currency ?: '-');
-        }
-
         $country = strtoupper(trim($item->countryOfOrigin)) ?: $this->defaultCountryOfOrigin;
 
         if ($country === '') {
@@ -116,7 +109,10 @@ final class CustomsDeclarationFromOrder
         $valueInCents = (int) round($item->value * 100);
 
         // Match the PDK order model: value and weight describe one product,
-        // while amount carries the number of units on this order line.
+        // while amount carries the number of units on this order line. The
+        // customs money model only accepts EUR; like the WooCommerce plugin
+        // the store amount is passed through unconverted, so a non-EUR store
+        // exports declarations with the amount labelled as EUR.
         return (new RefShipmentCustomsDeclarationItem())
             ->setDescription($description)
             ->setAmount($item->quantity)

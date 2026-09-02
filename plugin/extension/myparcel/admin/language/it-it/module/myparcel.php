@@ -169,7 +169,6 @@ $_['error_customs_country_invalid'] = 'I dati doganali di "%s" contengono un pae
 $_['error_customs_quantity_invalid'] = 'La quantità di "%s" non può essere usata in una dichiarazione doganale. Controlla la riga dell\'ordine e riprova.';
 $_['error_customs_country_missing'] = 'I dati doganali di "%s" sono incompleti. Imposta un paese di origine nel prodotto oppure configura un valore predefinito nelle impostazioni MyParcel.';
 $_['error_customs_too_many_items'] = 'La dichiarazione doganale contiene più di 100 righe prodotto. Suddividi l\'ordine in spedizioni più piccole prima dell\'esportazione.';
-$_['error_customs_currency'] = 'Le dichiarazioni doganali richiedono importi in EUR, ma questo negozio usa %s. Imposta EUR come valuta del negozio prima di esportare ordini fuori dall\'UE.';
 $_['error_tracktrace_fetch'] = 'Impossibile recuperare il track & trace: %s';
 $_['error_shipment_missing'] = 'La spedizione #%d non è stata trovata in MyParcel. Controlla l\'ambiente selezionato oppure esporta nuovamente l\'ordine.';
 $_['text_tracktrace_concept'] = 'La spedizione #%d è ancora una bozza, quindi il track & trace non è ancora disponibile. Scarica prima l\'etichetta e riprova.';

@@ -452,7 +452,6 @@ class Myparcel extends \Opencart\System\Engine\Controller
             CustomsDeclarationException::INVALID_QUANTITY => 'error_customs_quantity_invalid',
             CustomsDeclarationException::MISSING_COUNTRY_OF_ORIGIN => 'error_customs_country_missing',
             CustomsDeclarationException::TOO_MANY_ITEMS => 'error_customs_too_many_items',
-            CustomsDeclarationException::UNSUPPORTED_CURRENCY => 'error_customs_currency',
             default => 'error_export_failed',
         };
         $message = $this->language->get($key);

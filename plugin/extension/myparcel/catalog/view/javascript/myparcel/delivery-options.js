@@ -15,7 +15,8 @@
     pendingSave: null,
     selecting: false,
     selectionRun: 0,
-    lastAddressKey: null
+    lastAddressKey: null,
+    lastCountry: ''
   };
 
   window.MyParcelConfig = widgetConfig;
@@ -161,16 +162,26 @@
       // re-render and drop the shopper's current selection (Magento guards the
       // same way with an address-equality check).
       var addressKey = JSON.stringify(json.address);
+      var country = String((json.address || {}).cc || '');
+      var countryChanged = state.rendered && country !== state.lastCountry;
 
       if (!state.rendered) {
         window.MyParcelConfig.address = json.address;
         triggerWidgetEvent('myparcel_render_delivery_options');
-        state.rendered = true;
-        state.lastAddressKey = addressKey;
+        rememberAddress(addressKey, country);
+      } else if (countryChanged || (addressKey !== state.lastAddressKey && !widgetHasContent())) {
+        // PDK's country-switch cycle: hide first, then update with the full
+        // configuration, so the widget rebuilds instead of patching in place.
+        // A widget that rendered no content (e.g. an unsupported destination)
+        // cannot recover from a plain update either and gets the same cycle.
+        triggerWidgetEvent('myparcel_hide_delivery_options');
+        window.MyParcelConfig.address = json.address;
+        triggerWidgetEvent('myparcel_update_delivery_options');
+        rememberAddress(addressKey, country);
       } else if (addressKey !== state.lastAddressKey) {
         window.MyParcelConfig.address = json.address;
         triggerWidgetEvent('myparcel_update_delivery_options');
-        state.lastAddressKey = addressKey;
+        rememberAddress(addressKey, country);
       }
 
       // Shopper switched to a non-MyParcel method (not mid-selection): drop our
@@ -384,6 +395,20 @@
     // The widget listens on `document` (not document.body); dispatch there so it
     // actually receives the render/update events.
     document.dispatchEvent(event);
+  }
+
+  function rememberAddress(addressKey, country) {
+    state.rendered = true;
+    state.lastAddressKey = addressKey;
+    state.lastCountry = country;
+  }
+
+  // PDK's deliveryOptionsIsRendered(): trust the DOM over our own flag. A
+  // render that produced no content cannot be patched with an update event.
+  function widgetHasContent() {
+    var element = document.querySelector(config.selector || '#myparcel-delivery-options');
+
+    return Boolean(element && element.innerHTML !== '');
   }
 
   function hideWidget() {

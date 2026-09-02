@@ -169,7 +169,6 @@ $_['error_customs_country_invalid'] = 'De douanegegevens van "%s" bevatten een o
 $_['error_customs_quantity_invalid'] = 'Het aantal van "%s" kan niet in een douaneverklaring worden gebruikt. Controleer de orderregel en probeer opnieuw.';
 $_['error_customs_country_missing'] = 'De douanegegevens van "%s" zijn niet compleet. Stel een land van oorsprong in bij het product of configureer een standaard in de MyParcel-instellingen.';
 $_['error_customs_too_many_items'] = 'De douaneverklaring bevat meer dan 100 productregels. Verdeel de order over kleinere zendingen voordat je exporteert.';
-$_['error_customs_currency'] = 'Douaneverklaringen vereisen bedragen in EUR, maar deze shop gebruikt %s. Stel EUR in als shopvaluta voordat je orders buiten de EU exporteert.';
 $_['error_tracktrace_fetch'] = 'Kon track & trace niet ophalen: %s';
 $_['error_shipment_missing'] = 'Zending #%d is niet gevonden in MyParcel. Controleer de gekozen omgeving of exporteer de order opnieuw.';
 $_['text_tracktrace_concept'] = 'Zending #%d is nog een concept, dus track & trace is nog niet beschikbaar. Download eerst het label en probeer het daarna opnieuw.';

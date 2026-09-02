@@ -45,6 +45,15 @@ final class ProxyClient
         'access-control-expose-headers',
         'access-control-allow-credentials',
         'access-control-max-age',
+        // The proxy serves account- and address-dependent data; upstream cache
+        // headers would let the browser reuse a response after those change
+        // (e.g. delivery options surviving a checkout country switch).
+        'cache-control',
+        'expires',
+        'etag',
+        'last-modified',
+        'age',
+        'pragma',
     ];
 
     private ProxyConfig $config;
@@ -173,6 +182,8 @@ final class ProxyClient
                 $out[(string) $name] = $value;
             }
         }
+
+        $out['Cache-Control'] = 'no-store';
 
         return $out;
     }

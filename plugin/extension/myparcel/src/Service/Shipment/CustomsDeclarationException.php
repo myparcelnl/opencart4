@@ -14,8 +14,6 @@ final class CustomsDeclarationException extends InvalidArgumentException
     public const INVALID_QUANTITY = 'invalid_quantity';
     public const MISSING_COUNTRY_OF_ORIGIN = 'missing_country_of_origin';
     public const TOO_MANY_ITEMS = 'too_many_items';
-    public const UNSUPPORTED_CURRENCY = 'unsupported_currency';
-
     private string $reason;
 
     private string $context;
@@ -59,19 +57,13 @@ final class CustomsDeclarationException extends InvalidArgumentException
         return new self(self::TOO_MANY_ITEMS);
     }
 
-    /** The generated customs money model currently accepts EUR values. */
-    public static function unsupportedCurrency(string $currency): self
-    {
-        return new self(self::UNSUPPORTED_CURRENCY, $currency);
-    }
-
     /** Stable reason code translated by the OpenCart adapter. */
     public function reason(): string
     {
         return $this->reason;
     }
 
-    /** Product description or currency associated with the reason. */
+    /** Product description associated with the reason. */
     public function context(): string
     {
         return $this->context;

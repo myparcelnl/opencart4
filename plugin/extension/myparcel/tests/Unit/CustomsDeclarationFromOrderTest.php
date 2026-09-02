@@ -198,14 +198,20 @@ class CustomsDeclarationFromOrderTest extends TestCase
         self::assertCount(1, $declaration?->getItems() ?? []);
     }
 
-    public function testRejectsUnsupportedStoreCurrency(): void
+    public function testPassesNonEurAmountsThroughUnconvertedLikeWoo(): void
     {
-        $this->expectCustomsFailure(CustomsDeclarationException::UNSUPPORTED_CURRENCY);
-
-        (new CustomsDeclarationFromOrder())->create(
-            $this->order('GB', [new OrderItemDto('T-shirt', 1, 200, 15.00, '610910', 'NL', 'USD')]),
+        // Woo/PDK parity: the customs money model only accepts EUR, so the
+        // store amount is passed through unconverted instead of blocking the
+        // export for non-EUR stores.
+        $declaration = (new CustomsDeclarationFromOrder())->create(
+            $this->order('US', [new OrderItemDto('T-shirt', 1, 200, 15.00, '610910', 'NL', 'USD')]),
             200
         );
+
+        $item = ($declaration?->getItems() ?? [])[0];
+
+        self::assertSame('EUR', $item->getItemValue()->getCurrency());
+        self::assertSame(1500, $item->getItemValue()->getAmount());
     }
 
     /**

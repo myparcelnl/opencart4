@@ -169,7 +169,6 @@ $_['error_customs_country_invalid'] = 'Customs data for "%s" contains an invalid
 $_['error_customs_quantity_invalid'] = 'The quantity for "%s" cannot be used in a customs declaration. Check the order line and try again.';
 $_['error_customs_country_missing'] = 'Customs data for "%s" is incomplete. Set a country of origin on the product or configure a default in the MyParcel settings.';
 $_['error_customs_too_many_items'] = 'The customs declaration contains more than 100 product lines. Split the order into smaller shipments before exporting.';
-$_['error_customs_currency'] = 'Customs declarations require values in EUR, but this store uses %s. Use EUR as the store currency before exporting non-EU orders.';
 $_['error_tracktrace_fetch'] = 'Could not fetch track & trace: %s';
 $_['error_shipment_missing'] = 'Shipment #%d could not be found in MyParcel. Check the selected environment or export the order again.';
 $_['text_tracktrace_concept'] = 'Shipment #%d is still a concept, so track & trace is not available yet. Download its label first, then try again.';
