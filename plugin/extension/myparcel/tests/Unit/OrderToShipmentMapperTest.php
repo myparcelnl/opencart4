@@ -406,6 +406,31 @@ class OrderToShipmentMapperTest extends TestCase
         );
     }
 
+    public function testMapsNumberFirstInternationalAddressWithoutHouseNumber(): void
+    {
+        // US-style street lines yield no house number from the splitter; the
+        // full line stays in street and the shipment ships without a number
+        // instead of tripping the generated model's non-nullable setter.
+        $order = new OrderDto(
+            new RecipientDto(
+                cc: 'US',
+                person: 'Cher Test',
+                postalCode: '90210',
+                city: 'Beverly Hills',
+                street: '1600 Pennsylvania Avenue NW',
+                number: null
+            ),
+            [new OrderItemDto('T-shirt', 1, 200, 15.00, '610910', 'NL')],
+            'oc-48'
+        );
+
+        $shipment = $this->mapper()->mapOrderToShipment($order, null);
+        $recipient = $shipment->getRecipient();
+
+        self::assertSame('1600 Pennsylvania Avenue NW', $recipient->getStreet());
+        self::assertNull($recipient->getNumber());
+    }
+
     public function testDropsAPassedDeliveryDateInsteadOfFailingTheExport(): void
     {
         $diagnostics = [];

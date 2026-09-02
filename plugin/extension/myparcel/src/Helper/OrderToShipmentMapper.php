@@ -184,7 +184,14 @@ class OrderToShipmentMapper
         $recipient->setPerson($dto->person);
         $recipient->setCompany($dto->company);
         $recipient->setStreet($dto->street);
-        $recipient->setNumber($dto->number);
+
+        // Number-first street formats ("1600 Pennsylvania Ave") yield no house
+        // number from the splitter; the full line then stays in street. The API
+        // accepts a recipient without a number, but the generated setter rejects
+        // an explicit null.
+        if ($dto->number !== null && $dto->number !== '') {
+            $recipient->setNumber($dto->number);
+        }
 
         if ($dto->numberSuffix !== null && $dto->numberSuffix !== '') {
             $recipient->setNumberSuffix($dto->numberSuffix);
