@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-beta.7](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.6...v1.0.0-beta.7) (2026-09-02)
+
+
+### :bug: Bug Fixes
+
+* recover delivery options on country switch and unblock non-EUR customs exports ([822811a](https://github.com/myparcelnl/opencart4/commit/822811a5d58b2f61b6525e07f84eb2a579bab94e))
+
 ## [1.0.0-beta.6](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.5...v1.0.0-beta.6) (2026-08-31)
 
 
