@@ -27,12 +27,25 @@ final class ExportErrorMessageEnhancer
         'proprietà fisiche',
     ];
 
+    /** @var string[] */
+    private const CLASSIFICATION_MARKERS = [
+        'classification',
+        'classificatie',
+        'classificazione',
+        'hs code',
+        'hs-code',
+    ];
+
     /**
      * Preserve the API message and append guidance for validation errors the
      * merchant can resolve in OpenCart.
      */
-    public function enhance(string $message, string $phoneAdvice, string $dimensionsAdvice): string
-    {
+    public function enhance(
+        string $message,
+        string $phoneAdvice,
+        string $dimensionsAdvice,
+        string $classificationAdvice = ''
+    ): string {
         $normalized = strtolower($message);
         $advice = [];
 
@@ -42,6 +55,10 @@ final class ExportErrorMessageEnhancer
 
         if ($this->containsAny($normalized, self::PHYSICAL_PROPERTIES_MARKERS)) {
             $advice[] = $dimensionsAdvice;
+        }
+
+        if ($this->containsAny($normalized, self::CLASSIFICATION_MARKERS)) {
+            $advice[] = $classificationAdvice;
         }
 
         foreach (array_unique($advice) as $text) {

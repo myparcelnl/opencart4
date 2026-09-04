@@ -157,7 +157,8 @@ class Myparcel extends \Opencart\System\Engine\Controller
             $message = (new ExportErrorMessageEnhancer())->enhance(
                 ShipmentApiFailure::fromThrowable($e)->message(),
                 $this->language->get('error_export_phone_advice'),
-                $this->language->get('error_export_dimensions_advice')
+                $this->language->get('error_export_dimensions_advice'),
+                $this->language->get('error_export_classification_advice')
             );
             $this->model_extension_myparcel_shipment_myparcel->markFailed($orderId, $message);
             $this->response->setOutput(json_encode(['error' => $message]));

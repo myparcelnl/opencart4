@@ -6,6 +6,7 @@ namespace MyParcelNL\OpenCart\Core\Service\Shipment;
 
 use MyParcelNL\OpenCart\Core\Dto\OrderDto;
 use MyParcelNL\OpenCart\Core\Dto\OrderItemDto;
+use MyParcelNL\OpenCart\Core\Helper\HsCode;
 use MyParcelNL\OpenCart\Core\Settings\Settings;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentCustomsDeclaration;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentCustomsDeclarationItem;
@@ -40,7 +41,7 @@ final class CustomsDeclarationFromOrder
         ?CountryService $countryService = null,
         int $contentsType = Settings::DEFAULT_CUSTOMS_CONTENTS_TYPE
     ) {
-        $this->defaultCustomsCode = trim($defaultCustomsCode) ?: self::DEFAULT_CUSTOMS_CODE;
+        $this->defaultCustomsCode = HsCode::normalize($defaultCustomsCode) ?: self::DEFAULT_CUSTOMS_CODE;
         $this->defaultCountryOfOrigin = strtoupper(trim($defaultCountryOfOrigin));
         $this->contentsType = in_array($contentsType, Settings::customsContentsTypes(), true)
             ? $contentsType
@@ -105,7 +106,7 @@ final class CustomsDeclarationFromOrder
             throw CustomsDeclarationException::invalidCountryOfOrigin($description);
         }
 
-        $classification = trim($item->hsCode) ?: $this->defaultCustomsCode;
+        $classification = HsCode::normalize($item->hsCode) ?: $this->defaultCustomsCode;
         $valueInCents = (int) round($item->value * 100);
 
         // Match the PDK order model: value and weight describe one product,

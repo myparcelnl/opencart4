@@ -3,6 +3,7 @@
 namespace Opencart\Admin\Controller\Extension\Myparcel\Event;
 
 use MyParcelNL\OpenCart\Core\Helper\CountryOptions;
+use MyParcelNL\OpenCart\Core\Helper\HsCode;
 use MyParcelNL\OpenCart\Core\Service\Product\ProductTable;
 use MyParcelNL\OpenCart\Core\Settings\SettingKeys;
 use MyParcelNL\Sdk\Services\CountryCodes;
@@ -56,6 +57,7 @@ class Product extends \Opencart\System\Engine\Controller
         $data['myparcel_customs_fields'] = $this->load->view('extension/myparcel/event/product_customs_fields', [
             'text_legend' => $this->text('text_product_customs'),
             'text_hs_code' => $this->text('entry_product_hs_code'),
+            'text_hs_code_help' => $this->text('help_product_hs_code'),
             'text_country' => $this->text('entry_product_country'),
             'text_none' => $this->text('text_none'),
             'hs_code' => $stored['hs_code'],
@@ -118,7 +120,7 @@ class Product extends \Opencart\System\Engine\Controller
         $this->load->model('extension/myparcel/product/myparcel');
         $this->model_extension_myparcel_product_myparcel->save(
             $productId,
-            mb_substr(trim((string) ($data['myparcel_hs_code'] ?? '')), 0, ProductTable::HS_CODE_LENGTH),
+            mb_substr(HsCode::normalize((string) ($data['myparcel_hs_code'] ?? '')), 0, ProductTable::HS_CODE_LENGTH),
             $country
         );
     }

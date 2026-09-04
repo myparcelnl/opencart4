@@ -13,6 +13,8 @@ final class ExportErrorMessageEnhancerTest extends TestCase
 
     private const DIMENSIONS_ADVICE = 'Configure package dimensions.';
 
+    private const CLASSIFICATION_ADVICE = 'Check the HS code.';
+
     public function testAddsPhoneAdviceAfterTheOriginalMessage(): void
     {
         $message = "Invalid address: Het adresveld 'phone' voor 'ontvangstadres' is korter dan de minimale lengte van 1 tekens.";
@@ -54,13 +56,24 @@ final class ExportErrorMessageEnhancerTest extends TestCase
         );
     }
 
+    public function testAddsClassificationAdviceForHsCodeErrors(): void
+    {
+        $message = 'Invalid customs declaration: The length of items.0.classification is 9 characters'
+            . ' and must be 10 characters for US shipments.';
+
+        self::assertSame(
+            $message . ' ' . self::CLASSIFICATION_ADVICE,
+            $this->enhancer()->enhance($message, self::PHONE_ADVICE, self::DIMENSIONS_ADVICE, self::CLASSIFICATION_ADVICE)
+        );
+    }
+
     public function testLeavesUnrelatedErrorsUnchanged(): void
     {
         $message = 'Invalid recipient: The postal code is malformed.';
 
         self::assertSame(
             $message,
-            $this->enhancer()->enhance($message, self::PHONE_ADVICE, self::DIMENSIONS_ADVICE)
+            $this->enhancer()->enhance($message, self::PHONE_ADVICE, self::DIMENSIONS_ADVICE, self::CLASSIFICATION_ADVICE)
         );
     }
 

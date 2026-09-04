@@ -4,7 +4,10 @@
   <legend>{{ text_legend|e }}</legend>
   <div class="row mb-3">
     <label for="input-myparcel-hs-code" class="col-sm-2 col-form-label">{{ text_hs_code|e }}</label>
-    <div class="col-sm-10"><input type="text" name="myparcel_hs_code" value="{{ hs_code|e }}" id="input-myparcel-hs-code" class="form-control"/></div>
+    <div class="col-sm-10">
+      <input type="text" name="myparcel_hs_code" value="{{ hs_code|e }}" id="input-myparcel-hs-code" class="form-control" inputmode="numeric" maxlength="32"/>
+      <div class="form-text">{{ text_hs_code_help|e }}</div>
+    </div>
   </div>
   <div class="row mb-3">
     <label for="input-myparcel-country" class="col-sm-2 col-form-label">{{ text_country|e }}</label>

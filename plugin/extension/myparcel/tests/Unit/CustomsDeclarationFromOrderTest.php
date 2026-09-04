@@ -198,6 +198,20 @@ class CustomsDeclarationFromOrderTest extends TestCase
         self::assertCount(1, $declaration?->getItems() ?? []);
     }
 
+    public function testNormalizesFormattedHsCodes(): void
+    {
+        // HTS codes are commonly written with separators ("6109.10.0012");
+        // the API validates plain digit strings of 6, 8 or 10 characters.
+        $declaration = (new CustomsDeclarationFromOrder())->create(
+            $this->order('US', [new OrderItemDto('T-shirt', 1, 200, 15.00, '6109.10.0012', 'NL')]),
+            200
+        );
+
+        $item = ($declaration?->getItems() ?? [])[0];
+
+        self::assertSame('6109100012', $item->getClassification());
+    }
+
     public function testPassesNonEurAmountsThroughUnconvertedLikeWoo(): void
     {
         // Woo/PDK parity: the customs money model only accepts EUR, so the

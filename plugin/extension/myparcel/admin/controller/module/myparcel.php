@@ -6,6 +6,7 @@ use MyParcelNL\OpenCart\Core\Dto\ContractDefinitions;
 use MyParcelNL\OpenCart\Core\Dto\CarrierCatalog;
 use MyParcelNL\OpenCart\Core\Enum\Environment;
 use MyParcelNL\OpenCart\Core\Helper\CountryOptions;
+use MyParcelNL\OpenCart\Core\Helper\HsCode;
 use MyParcelNL\OpenCart\Core\Helper\OrderToShipmentMapper;
 use MyParcelNL\OpenCart\Core\Service\CapabilitiesService;
 use MyParcelNL\OpenCart\Core\Service\Carrier\CarrierCatalogService;
@@ -236,8 +237,8 @@ class Myparcel extends \Opencart\System\Engine\Controller
                 SettingKeys::CUSTOMS_DEFAULT_COUNTRY => (string) (
                     $this->request->post[SettingKeys::CUSTOMS_DEFAULT_COUNTRY] ?? ''
                 ),
-                SettingKeys::CUSTOMS_DEFAULT_HS_CODE => (string) (
-                    $this->request->post[SettingKeys::CUSTOMS_DEFAULT_HS_CODE] ?? ''
+                SettingKeys::CUSTOMS_DEFAULT_HS_CODE => HsCode::normalize(
+                    (string) ($this->request->post[SettingKeys::CUSTOMS_DEFAULT_HS_CODE] ?? '')
                 ),
                 SettingKeys::CUSTOMS_CONTENTS_TYPE => $this->normaliseCustomsContentsType(
                     $this->request->post[SettingKeys::CUSTOMS_CONTENTS_TYPE] ?? null
