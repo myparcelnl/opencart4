@@ -23,7 +23,7 @@ $_['entry_environment'] = 'Omgeving';
 $_['entry_default_package_type'] = 'Standaard pakkettype';
 $_['entry_label_format'] = 'Labelformaat';
 $_['entry_label_position'] = 'Labelpositie';
-$_['entry_fallback_dimensions'] = 'Terugval-pakketgrootte';
+$_['entry_fallback_dimensions'] = 'Pakketafmetingen';
 $_['entry_fallback_weight'] = 'Terugvalgewicht';
 $_['entry_length'] = 'Lengte';
 $_['entry_width'] = 'Breedte';
@@ -82,7 +82,7 @@ $_['help_environment'] = 'Zet alleen op acceptatie om tegen de testomgeving van 
 $_['help_default_package_type'] = 'Wordt gebruikt als pakkettype in de checkout en als terugvalwaarde wanneer een order geen gekozen bezorgoptie heeft.';
 $_['help_label_format'] = 'A6 print één label per pagina; A4 plaatst labels op een vel.';
 $_['help_label_position'] = 'Positie op het A4-vel (1-4). Niet van toepassing bij A6.';
-$_['help_fallback_dimensions'] = 'Lengte, breedte en hoogte in cm, alleen gebruikt wanneer de producten van een order geen bruikbare afmetingen hebben. Sommige carriers (bijv. Poste Italiane, InPost) vereisen ze.';
+$_['help_fallback_dimensions'] = 'Lengte, breedte en hoogte in cm; worden bij elke zending meegestuurd wanneer ingevuld. Laat leeg om zonder afmetingen te exporteren; sommige vervoerders (bijv. Poste Italiane, InPost) vereisen ze.';
 $_['help_fallback_weight'] = 'Gewicht in gram, alleen gebruikt wanneer de producten van een order geen gewicht hebben. Laat op 0 voor het technische minimum van 1 g. Sommige vervoerders vereisen meer, zoals UPS (minimaal 50 g).';
 
 // Button
@@ -157,7 +157,7 @@ $_['error_not_exported'] = 'Deze order is nog niet naar MyParcel geëxporteerd.'
 $_['error_no_shipment_returned'] = 'MyParcel gaf geen zending terug.';
 $_['error_export_failed'] = 'Kon de order niet naar MyParcel exporteren.';
 $_['error_export_phone_advice'] = 'Oplossing: de gekozen vervoerder vereist een geldig telefoonnummer van de ontvanger. Vul dit in bij de klantgegevens van de order en probeer opnieuw.';
-$_['error_export_dimensions_advice'] = 'Oplossing: de gekozen vervoerder accepteert de afmetingen of het gewicht van het pakket niet. Controleer lengte, breedte, hoogte en gewicht van het product — of de terugval-pakketgrootte in de MyParcel-instellingen — tegen de limieten van de vervoerder.';
+$_['error_export_dimensions_advice'] = 'Oplossing: de gekozen vervoerder accepteert de afmetingen of het gewicht van het pakket niet. Controleer de pakketafmetingen in de MyParcel-instellingen en de productgewichten tegen de limieten van de vervoerder.';
 $_['error_export_classification_advice'] = 'Oplossing: controleer de HS-code (douaneclassificatie) van het product. Deze moet 6, 8 of 10 cijfers zijn; zendingen naar de VS vereisen de volledige 10-cijferige code. Stel hem in bij het product of als fallback in de MyParcel-instellingen.';
 $_['error_default_carrier_missing'] = 'Er is geen standaardvervoerder beschikbaar. Importeer de vervoerders opnieuw in de MyParcel-instellingen, of kies vóór het exporteren een vervoerder via Delivery Options.';
 $_['error_recipient_incomplete'] = 'Deze order kan niet worden geëxporteerd omdat het adres van de ontvanger niet compleet is. Vul deze velden in bij de order: %s.';

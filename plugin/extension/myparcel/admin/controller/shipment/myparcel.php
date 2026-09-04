@@ -4,7 +4,6 @@ namespace Opencart\Admin\Controller\Extension\Myparcel\Shipment;
 
 use MyParcelNL\OpenCart\Core\Dto\DeliveryOptionsDto;
 use MyParcelNL\OpenCart\Core\Enum\Environment;
-use MyParcelNL\OpenCart\Core\Helper\DimensionResolver;
 use MyParcelNL\OpenCart\Core\Helper\OrderDtoBuilder;
 use MyParcelNL\OpenCart\Core\Helper\OrderToShipmentMapper;
 use MyParcelNL\OpenCart\Core\Helper\ProductData;
@@ -105,8 +104,11 @@ class Myparcel extends \Opencart\System\Engine\Controller
         $defaultSlug = array_flip($valuesBySlug)[$defaultCarrier] ?? null;
         $carrierSlug = ($doSlug !== null && isset($valuesBySlug[$doSlug])) ? $doSlug : $defaultSlug;
 
-        // Dimensions from the products (cm), falling back to the configured default box.
-        $dimensions = (new DimensionResolver())->resolve($productData, $products) ?? $this->defaultDimensions();
+        // PDK parity: dimensions are only sent when the merchant configured them
+        // (the package size in the settings); nothing is derived from product
+        // data and no minimums are applied. Unset dimensions are omitted from
+        // the request entirely, never sent as 0.
+        $dimensions = $this->defaultDimensions();
 
         $fallbackReporter = function (string $diagnostic) use ($orderId): void {
             $this->logMapperFallback($orderId, $diagnostic);

@@ -23,7 +23,7 @@ $_['entry_environment'] = 'Environment';
 $_['entry_default_package_type'] = 'Default package type';
 $_['entry_label_format'] = 'Label format';
 $_['entry_label_position'] = 'Label position';
-$_['entry_fallback_dimensions'] = 'Fallback package size';
+$_['entry_fallback_dimensions'] = 'Package dimensions';
 $_['entry_fallback_weight'] = 'Fallback weight';
 $_['entry_length'] = 'Length';
 $_['entry_width'] = 'Width';
@@ -82,7 +82,7 @@ $_['help_environment'] = 'Use acceptance only to test against the MyParcel test 
 $_['help_default_package_type'] = 'Used as the package type in checkout and as the fallback when an order has no delivery option chosen.';
 $_['help_label_format'] = 'A6 prints one label per page; A4 places labels on a sheet.';
 $_['help_label_position'] = 'Position on the A4 sheet (1-4). Ignored for A6.';
-$_['help_fallback_dimensions'] = 'Length, width and height in cm, used only when the order\'s products have no usable dimensions. Some carriers (e.g. Poste Italiane, InPost) require them.';
+$_['help_fallback_dimensions'] = 'Length, width and height in cm, sent with every shipment when filled in. Leave empty to export without dimensions; some carriers (e.g. Poste Italiane, InPost) require them.';
 $_['help_fallback_weight'] = 'Weight in grams, used only when the order\'s products have no weight. Leave at 0 to use a technical minimum of 1 g. Some carriers require more, such as UPS (at least 50 g).';
 
 // Button
@@ -157,7 +157,7 @@ $_['error_not_exported'] = 'This order has not been exported to MyParcel yet.';
 $_['error_no_shipment_returned'] = 'MyParcel returned no shipment.';
 $_['error_export_failed'] = 'Could not export the order to MyParcel.';
 $_['error_export_phone_advice'] = 'How to fix: the selected carrier requires a valid recipient phone number. Add it under the order\'s customer details and try again.';
-$_['error_export_dimensions_advice'] = 'How to fix: the selected carrier could not accept the parcel\'s dimensions or weight. Check the product\'s length, width, height and weight — or the fallback package size in the MyParcel settings — against the carrier\'s limits.';
+$_['error_export_dimensions_advice'] = 'How to fix: the selected carrier could not accept the parcel\'s dimensions or weight. Check the package dimensions in the MyParcel settings and the product weights against the carrier\'s limits.';
 $_['error_export_classification_advice'] = 'How to fix: check the product\'s HS code (customs classification). It must be 6, 8 or 10 digits, and shipments to the US require the full 10-digit code. Set it on the product or as a fallback in the MyParcel settings.';
 $_['error_default_carrier_missing'] = 'No default carrier is available. Re-import the carriers in the MyParcel settings, or select a carrier through Delivery Options before exporting.';
 $_['error_recipient_incomplete'] = 'This order cannot be exported because the recipient address is incomplete. Complete these fields in the order: %s.';

@@ -23,7 +23,7 @@ $_['entry_environment'] = 'Ambiente';
 $_['entry_default_package_type'] = 'Tipo di pacco predefinito';
 $_['entry_label_format'] = 'Formato etichetta';
 $_['entry_label_position'] = 'Posizione etichetta';
-$_['entry_fallback_dimensions'] = 'Dimensioni pacco di fallback';
+$_['entry_fallback_dimensions'] = 'Dimensioni del pacco';
 $_['entry_fallback_weight'] = 'Peso di fallback';
 $_['entry_length'] = 'Lunghezza';
 $_['entry_width'] = 'Larghezza';
@@ -82,7 +82,7 @@ $_['help_environment'] = 'Usa l\'ambiente di accettazione solo per eseguire test
 $_['help_default_package_type'] = 'Usato come tipo di pacco nel checkout e come valore di fallback quando per un ordine non è stata scelta alcuna opzione di consegna.';
 $_['help_label_format'] = 'A6 stampa un\'etichetta per pagina; A4 dispone le etichette su un foglio.';
 $_['help_label_position'] = 'Posizione sul foglio A4 (1-4). Ignorata per A6.';
-$_['help_fallback_dimensions'] = 'Lunghezza, larghezza e altezza in cm, usate solo quando i prodotti dell\'ordine non hanno dimensioni utilizzabili. Alcuni corrieri, come Poste Italiane e InPost, le richiedono.';
+$_['help_fallback_dimensions'] = 'Lunghezza, larghezza e altezza in cm; inviate con ogni spedizione quando compilate. Lascia vuoto per esportare senza dimensioni; alcuni corrieri (es. Poste Italiane, InPost) le richiedono.';
 $_['help_fallback_weight'] = 'Peso in grammi, usato solo quando i prodotti dell\'ordine non hanno peso. Lascia 0 per usare il minimo tecnico di 1 g. Alcuni corrieri richiedono un peso maggiore, come UPS (almeno 50 g).';
 
 // Button
@@ -157,7 +157,7 @@ $_['error_not_exported'] = 'Questo ordine non è ancora stato esportato su MyPar
 $_['error_no_shipment_returned'] = 'MyParcel non ha restituito alcuna spedizione.';
 $_['error_export_failed'] = 'Impossibile esportare l\'ordine su MyParcel.';
 $_['error_export_phone_advice'] = 'Come risolvere: il corriere selezionato richiede un numero di telefono valido del destinatario. Inseriscilo nei dati cliente dell\'ordine e riprova.';
-$_['error_export_dimensions_advice'] = 'Come risolvere: il corriere selezionato non accetta le dimensioni o il peso del pacco. Verifica lunghezza, larghezza, altezza e peso del prodotto — o le dimensioni pacco di fallback nelle impostazioni MyParcel — rispetto ai limiti del corriere.';
+$_['error_export_dimensions_advice'] = 'Come risolvere: il corriere selezionato non accetta le dimensioni o il peso del pacco. Verifica le dimensioni del pacco nelle impostazioni MyParcel e i pesi dei prodotti rispetto ai limiti del corriere.';
 $_['error_export_classification_advice'] = 'Come risolvere: controlla il codice HS (classificazione doganale) del prodotto. Deve avere 6, 8 o 10 cifre; le spedizioni verso gli USA richiedono il codice completo di 10 cifre. Impostalo sul prodotto o come fallback nelle impostazioni MyParcel.';
 $_['error_default_carrier_missing'] = 'Non è disponibile alcun corriere predefinito. Importa nuovamente i corrieri nelle impostazioni MyParcel oppure seleziona un corriere tramite le Opzioni di consegna prima dell\'esportazione.';
 $_['error_recipient_incomplete'] = 'Questo ordine non può essere esportato perché l\'indirizzo del destinatario è incompleto. Compila questi campi nell\'ordine: %s.';

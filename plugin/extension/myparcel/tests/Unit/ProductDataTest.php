@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace MyParcelNL\OpenCart\Core\Tests\Unit;
 
-use MyParcelNL\OpenCart\Core\Helper\DimensionResolver;
 use MyParcelNL\OpenCart\Core\Helper\ProductData;
 use MyParcelNL\OpenCart\Core\Helper\ProductExportDataResolver;
 use MyParcelNL\OpenCart\Core\Helper\WeightResolver;
@@ -30,7 +29,6 @@ class ProductDataTest extends TestCase
 
         $weighted = (new WeightResolver())->attachWeights($data, $products);
         $exportProducts = (new ProductExportDataResolver())->attach($data, $weighted);
-        $dimensions = (new DimensionResolver())->resolve($data, $products);
 
         self::assertSame(1500, $exportProducts[0]['weight']);
         self::assertSame(250, $exportProducts[1]['weight']);
@@ -40,7 +38,6 @@ class ProductDataTest extends TestCase
         self::assertSame('', $exportProducts[1]['hs_code']);
         self::assertSame('', $exportProducts[1]['country_of_origin']);
         self::assertFalse($exportProducts[1]['requires_shipping']);
-        self::assertSame(['length' => 30, 'width' => 10, 'height' => 5], $dimensions);
         self::assertCount(5, $db->queries, 'Resolvers should not run extra queries.');
         self::assertStringContainsString(
             'LEFT JOIN `oc_myparcel_product`',
@@ -48,15 +45,6 @@ class ProductDataTest extends TestCase
         );
     }
 
-    public function testMissingCentimetreClassReturnsNoDimensions(): void
-    {
-        $db = new ProductDataDb(false);
-        $products = [['product_id' => 10, 'quantity' => 1]];
-
-        $data = ProductData::load($db, 1, $products);
-
-        self::assertNull((new DimensionResolver())->resolve($data, $products));
-    }
 
     public function testMissingGramClassReturnsZeroWeight(): void
     {
