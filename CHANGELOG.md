@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-beta.10](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.9...v1.0.0-beta.10) (2026-09-04)
+
+
+### :bug: Bug Fixes
+
+* only send shipment dimensions the merchant configured ([213e695](https://github.com/myparcelnl/opencart4/commit/213e695839f0d7aa504cf29a967d0bfde30d3204)), closes [myparcelnl/pdk#516](https://github.com/myparcelnl/pdk/issues/516)
+
 ## [1.0.0-beta.9](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.8...v1.0.0-beta.9) (2026-09-04)
 
 
