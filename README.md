@@ -4,7 +4,7 @@ The official MyParcel extension for OpenCart 4. It connects an OpenCart store
 to MyParcel for delivery options, shipment exports, labels and track & trace.
 
 > The extension is currently in pre-release. The latest version in the
-> extension manifest is `1.0.0-beta.8`.
+> extension manifest is `1.0.0-beta.9`.
 
 ## Requirements
 

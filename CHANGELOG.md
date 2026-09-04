@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.0-beta.9](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.8...v1.0.0-beta.9) (2026-09-04)
+
+
+### :sparkles: New Features
+
+* normalise HS codes and explain customs classification errors ([3100599](https://github.com/myparcelnl/opencart4/commit/3100599085dd42371a66c8ccc3a12ae7d319c087))
+
 ## [1.0.0-beta.8](https://github.com/myparcelnl/opencart4/compare/v1.0.0-beta.7...v1.0.0-beta.8) (2026-09-02)
 
 
