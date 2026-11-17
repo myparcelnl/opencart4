@@ -29,7 +29,7 @@ jobs:
           tools: composer
 
       - name: Install development dependencies
-        uses: myparcelnl/actions/composer-install@v5
+        uses: myparcelnl/actions/composer-install@v6
         env:
           # OpenCart 4.1 itself requires GD. The shared Composer image does not
           # include it, while the host runtime above deliberately does.

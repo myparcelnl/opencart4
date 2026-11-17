@@ -6,6 +6,15 @@ For a substantial change, please open an issue first so the approach and scope
 can be discussed. Keep pull requests focused and include tests for changed
 behaviour.
 
+## Prerequisites
+
+The release tooling needs:
+
+- Node.js 24, version 24.21 or later
+- pnpm 12, version 12.11 or later
+
+Volta must not be installed: its `yarn` ignores `packageManager` and `devEngines`.
+
 ## Development checks
 
 Install the development dependencies:
