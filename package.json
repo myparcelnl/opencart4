@@ -4,7 +4,7 @@
   "description": "Release tooling for the MyParcel OpenCart 4 extension.",
   "devDependencies": {
     "@myparcel-dev/semantic-release-config": "^7.0.0",
-    "semantic-release": "^25.0.9"
+    "semantic-release": "^26.0.1"
   },
   "packageManager": "pnpm@12.14.0",
   "engines": {
